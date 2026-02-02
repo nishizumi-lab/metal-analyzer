@@ -1,0 +1,31 @@
+[build-system]
+requires = ["setuptools>=61.0"]
+build-backend = "setuptools.build_meta"
+
+[project]
+name = "metal-analyzer"
+version = "0.1.0"
+description = "A tool for analyzing prices with technical indicators and top-down analysis."
+readme = "README.md"
+requires-python = ">=3.7"
+license = {file = "LICENSE"}
+authors = [
+  {name = "Nishizumi", email = daiman003@yahoo.co.jp"},
+]
+classifiers = [
+    "Programming Language :: Python :: 3",
+    "License :: OSI Approved :: MIT License",
+    "Operating System :: OS Independent",
+]
+dependencies = [
+    "pandas",
+    "matplotlib",
+    "numpy",
+    "scipy"
+]
+
+[project.urls]
+"Homepage" = "https://github.com/nishizumi-lab/metal-analyzer"
+
+[tool.setuptools.packages.find]
+include = ["metal_analyzer*"]
