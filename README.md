@@ -56,28 +56,13 @@ analyzer.analyze_all()
 ```
 
 #### 出力チャート
-````carousel
-![Monthly](examples/outputs/candles/chart_monthly.png)
-<!-- slide -->
-![Weekly](examples/outputs/candles/chart_weekly.png)
-<!-- slide -->
-![Daily](examples/outputs/candles/chart_daily.png)
-<!-- slide -->
-![1H](examples/outputs/candles/chart_1h.png)
-<!-- slide -->
-![15M](examples/outputs/candles/chart_15m.png)
-````
+![Daily Chart](docs/images/chart_daily.png)
+*(月足、週足、1時間足等も一括生成されます)*
 
 ---
 
 ### 2. 暴落加速シミュレーション (`examples/demo-20260130.py`)
 歴史的な暴落局面（2026年1月30日）を再現し、ダブルトップのネックライン割れと下落加速シグナルを検知します。
-
-#### コード例
-```python
-# 2026-01-30 10:00:00 時点の市場を再現
-run_simulation("20260130", "2026-01-30 10:00:00", "最重要局面・分析")
-```
 
 #### 実行結果（標準出力）
 ```text
@@ -96,19 +81,11 @@ run_simulation("20260130", "2026-01-30 10:00:00", "最重要局面・分析")
 ```
 
 #### 出力チャート
-````carousel
-![Monthly](examples/outputs/candles/20260130_chart_monthly.png)
-<!-- slide -->
-![Daily](examples/outputs/candles/20260130_chart_daily.png)
-<!-- slide -->
-![4H](examples/outputs/candles/20260130_chart_4h.png)
-<!-- slide -->
-![1H](examples/outputs/candles/20260130_chart_1h.png)
-````
+![Scenario 20260130](docs/images/20260130_chart_daily.png)
 
 ---
 
-### 3. 上習トレンド転換シミュレーション (`examples/demo-20251230.py`)
+### 3. 上昇トレンド転換シミュレーション (`examples/demo-20251230.py`)
 レンジ相場から上昇に転じる局面（2025年12月30日）を再現し、底堅さの判定を検証します。
 
 #### 実行結果（標準出力）
@@ -128,13 +105,7 @@ run_simulation("20260130", "2026-01-30 10:00:00", "最重要局面・分析")
 ```
 
 #### 出力チャート
-````carousel
-![Daily](examples/outputs/candles/20251230_chart_daily.png)
-<!-- slide -->
-![4H](examples/outputs/candles/20251230_chart_4h.png)
-<!-- slide -->
-![1H](examples/outputs/candles/20251230_chart_1h.png)
-````
+![Scenario 20251230](docs/images/20251230_chart_daily.png)
 
 ---
 
@@ -148,9 +119,9 @@ run_simulation("20260130", "2026-01-30 10:00:00", "最重要局面・分析")
 | `indicators/` | `sma.py` | 移動平均線（SMA, EMA）の計算アルゴリズム。 |
 | | `rsi.py` | 相対力指数（RSI）の計算アルゴリズム。 |
 | `patterns/` | `double_top.py` | SciPyを用いたダブルトップ（Mトップ）検知ロジック。 |
-| `models/` | `advanced_predictor.py` | 4つのダッシュボードによる高精度トレンド予測エンジン。 |
-| | `top_down.py` | 日足、4時間足、1時間足などを組み合わせたマルチタイムフレーム分析ロジック。 |
-| | `signal_entry.py` | テクニカル指標に基づいた具体的なエントリー・エグジット判定。 |
-| `examples/` | `demo.py` | 最新の市場データを用いた総合分析デモスクリプト。 |
-| | `demo-20260130.py` | 2026年暴落局面の再現用シミュレーションスクリプト。 |
-| | `demo-20251230.py` | 2025年トレンド転換局面の再現用シミュレーションスクリプト。 |
+| `models/` | `advanced_predictor.py` | 高精度トレンド予測エンジン。 |
+| | `top_down.py` | マルチタイムフレーム分析ロジック。 |
+| | `signal_entry.py` | エントリー・エグジット判定。 |
+| `examples/` | `demo.py` | 総合分析デモスクリプト。 |
+| | `demo-20260130.py` | 暴落局面シミュレーション。 |
+| | `demo-20251230.py` | トレンド転換シミュレーション。 |

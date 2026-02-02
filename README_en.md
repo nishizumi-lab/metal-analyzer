@@ -54,29 +54,14 @@ analyzer.analyze_all()
 ==================================================
 ```
 
-#### Output Charts
-````carousel
-![Monthly](examples/outputs/candles/chart_monthly.png)
-<!-- slide -->
-![Weekly](examples/outputs/candles/chart_weekly.png)
-<!-- slide -->
-![Daily](examples/outputs/candles/chart_daily.png)
-<!-- slide -->
-![1H](examples/outputs/candles/chart_1h.png)
-<!-- slide -->
-![15M](examples/outputs/candles/chart_15m.png)
-````
+#### Output Chart
+![Daily Chart](docs/images/chart_daily.png)
+*(Monthly, Weekly, Hourly, and 15M charts are also generated in bulk)*
 
 ---
 
 ### 2. Crash Acceleration Simulation (`examples/demo-20260130.py`)
 Reproduces the historical crash of Jan 30, 2026, detecting the neckline break and the "Great Crash Acceleration" signal.
-
-#### Code Example
-```python
-# Reproduce the market state at 2026-01-30 10:00:00
-run_simulation("20260130", "2026-01-30 10:00:00", "Critical Scenario Analysis")
-```
 
 #### Execution Result (Console Output)
 ```text
@@ -94,16 +79,8 @@ run_simulation("20260130", "2026-01-30 10:00:00", "Critical Scenario Analysis")
 ==================================================
 ```
 
-#### Output Charts
-````carousel
-![Monthly](examples/outputs/candles/20260130_chart_monthly.png)
-<!-- slide -->
-![Daily](examples/outputs/candles/20260130_chart_daily.png)
-<!-- slide -->
-![4H](examples/outputs/candles/20260130_chart_4h.png)
-<!-- slide -->
-![1H](examples/outputs/candles/20260130_chart_1h.png)
-````
+#### Output Chart
+![Scenario 20260130](docs/images/20260130_chart_daily.png)
 
 ---
 
@@ -126,14 +103,8 @@ Reproduces the transition from range-bound to a bullish trend on Dec 30, 2025.
 ==================================================
 ```
 
-#### Output Charts
-````carousel
-![Daily](examples/outputs/candles/20251230_chart_daily.png)
-<!-- slide -->
-![4H](examples/outputs/candles/20251230_chart_4h.png)
-<!-- slide -->
-![1H](examples/outputs/candles/20251230_chart_1h.png)
-````
+#### Output Chart
+![Scenario 20251230](docs/images/20251230_chart_daily.png)
 
 ---
 
@@ -148,8 +119,8 @@ Detailed descriptions of each file's role in the project.
 | | `rsi.py` | Relative Strength Index (RSI) calculation algorithm. |
 | `patterns/` | `double_top.py` | Double Top (M-Top) detection logic using SciPy filters. |
 | `models/` | `advanced_predictor.py` | High-precision trend prediction engine based on 4 dashboards. |
-| | `top_down.py` | Multi-timeframe top-down analysis logic combining Daily, 4H, and 1H data. |
-| | `signal_entry.py` | Entry and exit signal determination based on technical indicators. |
+| | `top_down.py` | Multi-timeframe top-down analysis logic. |
+| | `signal_entry.py` | Entry and exit signal determination logic. |
 | `examples/` | `demo.py` | Comprehensive analysis demo script using the latest market data. |
 | | `demo-20260130.py` | Simulation script for the Jan 2026 crash scenario. |
 | | `demo-20251230.py` | Simulation script for the Dec 2025 trend transition scenario. |
