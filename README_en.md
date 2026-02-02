@@ -25,16 +25,6 @@ Three demo scripts are provided in the `examples/` folder to showcase the librar
 ### 1. Comprehensive Analysis Demo (`examples/demo.py`)
 Generates charts for all major timeframes and runs advanced trend prediction using the latest market data.
 
-#### Code Example
-```python
-from metal_analyzer import MetalAnalyzer
-
-analyzer = MetalAnalyzer(ticker="GC=F")
-# Fetch data, add it to the analyzer, and run analyze_all()
-# ... (See examples/demo.py for details)
-analyzer.analyze_all()
-```
-
 #### Execution Result (Console Output)
 ```text
 === Metal Analyzer Comprehensive Analysis Demo ===
@@ -54,9 +44,24 @@ analyzer.analyze_all()
 ==================================================
 ```
 
-#### Output Chart
-![Daily Chart](docs/images/chart_daily.png)
-*(Monthly, Weekly, Hourly, and 15M charts are also generated in bulk)*
+#### Output Charts (6 Timeframes)
+<details>
+<summary>Click to view all timeframe charts (6 images)</summary>
+
+- **Monthly**
+  ![Monthly](docs/images/chart_monthly.png)
+- **Weekly**
+  ![Weekly](docs/images/chart_weekly.png)
+- **Daily**
+  ![Daily](docs/images/chart_daily.png)
+- **4-Hour (4H)**
+  ![4H](docs/images/chart_4h.png)
+- **1-Hour (1H)**
+  ![1H](docs/images/chart_1h.png)
+- **15-Minute (15M)**
+  ![15M](docs/images/chart_15m.png)
+
+</details>
 
 ---
 
@@ -79,8 +84,24 @@ Reproduces the historical crash of Jan 30, 2026, detecting the neckline break an
 ==================================================
 ```
 
-#### Output Chart
-![Scenario 20260130](docs/images/20260130_chart_daily.png)
+#### Output Charts (6 Timeframes)
+<details>
+<summary>Click to view all timeframe charts (6 images)</summary>
+
+- **Monthly**
+  ![Monthly](docs/images/20260130_chart_monthly.png)
+- **Weekly**
+  ![Weekly](docs/images/20260130_chart_weekly.png)
+- **Daily**
+  ![Daily](docs/images/20260130_chart_daily.png)
+- **4-Hour (4H)**
+  ![4H](docs/images/20260130_chart_4h.png)
+- **1-Hour (1H)**
+  ![1H](docs/images/20260130_chart_1h.png)
+- **15-Minute (15M)**
+  ![15M](docs/images/20260130_chart_15m.png)
+
+</details>
 
 ---
 
@@ -103,8 +124,24 @@ Reproduces the transition from range-bound to a bullish trend on Dec 30, 2025.
 ==================================================
 ```
 
-#### Output Chart
-![Scenario 20251230](docs/images/20251230_chart_daily.png)
+#### Output Charts (6 Timeframes)
+<details>
+<summary>Click to view all timeframe charts (6 images)</summary>
+
+- **Monthly**
+  ![Monthly](docs/images/20251230_chart_monthly.png)
+- **Weekly**
+  ![Weekly](docs/images/20251230_chart_weekly.png)
+- **Daily**
+  ![Daily](docs/images/20251230_chart_daily.png)
+- **4-Hour (4H)**
+  ![4H](docs/images/20251230_chart_4h.png)
+- **1-Hour (1H)**
+  ![1H](docs/images/20251230_chart_1h.png)
+- **15-Minute (15M)**
+  ![15M](docs/images/20251230_chart_15m.png)
+
+</details>
 
 ---
 

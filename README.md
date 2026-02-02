@@ -25,17 +25,6 @@ pip install .
 ### 1. 総合分析デモ (`examples/demo.py`)
 最新の市場データを用いて、全時間足のチャート生成と高度トレンド予測を一度に実行します。
 
-#### コード例
-```python
-import yfinance as yf
-from metal_analyzer import MetalAnalyzer
-
-analyzer = MetalAnalyzer(ticker="GC=F")
-# 各時間足データを取得して追加し、analyze_all()を実行
-# ... (詳細は examples/demo.py 参照)
-analyzer.analyze_all()
-```
-
 #### 実行結果（標準出力）
 ```text
 === Metal Analyzer 総合分析デモ ===
@@ -55,9 +44,24 @@ analyzer.analyze_all()
 ==================================================
 ```
 
-#### 出力チャート
-![Daily Chart](docs/images/chart_daily.png)
-*(月足、週足、1時間足等も一括生成されます)*
+#### 出力チャート（6時間足）
+<details>
+<summary>クリックして全時間足チャート（6枚）を表示</summary>
+
+- **月足 (Monthly)**
+  ![Monthly](docs/images/chart_monthly.png)
+- **週足 (Weekly)**
+  ![Weekly](docs/images/chart_weekly.png)
+- **日足 (Daily)**
+  ![Daily](docs/images/chart_daily.png)
+- **4時間足 (4H)**
+  ![4H](docs/images/chart_4h.png)
+- **1時間足 (1H)**
+  ![1H](docs/images/chart_1h.png)
+- **15分足 (15M)**
+  ![15M](docs/images/chart_15m.png)
+
+</details>
 
 ---
 
@@ -80,8 +84,24 @@ analyzer.analyze_all()
 ==================================================
 ```
 
-#### 出力チャート
-![Scenario 20260130](docs/images/20260130_chart_daily.png)
+#### 出力チャート（6時間足）
+<details>
+<summary>クリックして全時間足チャート（6枚）を表示</summary>
+
+- **月足 (Monthly)**
+  ![Monthly](docs/images/20260130_chart_monthly.png)
+- **週足 (Weekly)**
+  ![Weekly](docs/images/20260130_chart_weekly.png)
+- **日足 (Daily)**
+  ![Daily](docs/images/20260130_chart_daily.png)
+- **4時間足 (4H)**
+  ![4H](docs/images/20260130_chart_4h.png)
+- **1時間足 (1H)**
+  ![1H](docs/images/20260130_chart_1h.png)
+- **15分足 (15M)**
+  ![15M](docs/images/20260130_chart_15m.png)
+
+</details>
 
 ---
 
@@ -104,8 +124,24 @@ analyzer.analyze_all()
 ==================================================
 ```
 
-#### 出力チャート
-![Scenario 20251230](docs/images/20251230_chart_daily.png)
+#### 出力チャート（6時間足）
+<details>
+<summary>クリックして全時間足チャート（6枚）を表示</summary>
+
+- **月足 (Monthly)**
+  ![Monthly](docs/images/20251230_chart_monthly.png)
+- **週足 (Weekly)**
+  ![Weekly](docs/images/20251230_chart_weekly.png)
+- **日足 (Daily)**
+  ![Daily](docs/images/20251230_chart_daily.png)
+- **4時間足 (4H)**
+  ![4H](docs/images/20251230_chart_4h.png)
+- **1時間足 (1H)**
+  ![1H](docs/images/20251230_chart_1h.png)
+- **15分足 (15M)**
+  ![15M](docs/images/20251230_chart_15m.png)
+
+</details>
 
 ---
 
