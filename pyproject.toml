@@ -10,7 +10,7 @@ readme = "README.md"
 requires-python = ">=3.7"
 license = {file = "LICENSE"}
 authors = [
-  {name = "Nishizumi", email = daiman003@yahoo.co.jp"},
+  {name = "Nishizumi", email = "daiman003@yahoo.co.jp"},
 ]
 classifiers = [
     "Programming Language :: Python :: 3",
@@ -21,7 +21,8 @@ dependencies = [
     "pandas",
     "matplotlib",
     "numpy",
-    "scipy"
+    "scipy",
+    "mplfinance"
 ]
 
 [project.urls]

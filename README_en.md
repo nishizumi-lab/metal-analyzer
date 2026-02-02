@@ -1,13 +1,13 @@
 # Metal Analyzer
 
-A Python library for analyzing precious metal (e.g., Gold) prices, determining trends, and detecting specific chart patterns like Double Tops.
+A professional Python library for advanced analysis of precious metal prices (e.g., Gold). It provides high-precision trend prediction, market sentiment analysis, and sophisticated chart pattern detection.
 
-## Features
+## Key Features
 
-- **Multi-Timeframe Analysis**: Top-down analysis combining daily and hourly data.
-- **Pattern Detection**: Advanced Double Top (M-top) detection using SciPy.
-- **Modular Architecture**: Separated modules for `indicators`, `patterns`, and `models`.
-- **Decoupled Data Source**: Accepts standard Pandas DataFrames from any sources (e.g., `yfinance`).
+- **👑 High-Precision Analysis Dashboard**: Integrates 4 key dimensions (Long-term Trend, Momentum, Volatility Acceleration, and Sentiment) to predict crashes and surges.
+- **📈 Multi-Timeframe Support**: Supports Monthly, Weekly, Daily, 4-Hour, 1-Hour, and 15-Minute timeframes.
+- **📊 Professional Charting**: Generates high-quality `mplfinance` charts in Dark Mode, automatically including EMA 20/50/200 and visual legends.
+- **🔍 Pattern Detection**: Sensitive detection of Double Top (M-Top) patterns using advanced filtering techniques.
 
 ## Installation
 
@@ -16,65 +16,140 @@ cd metal-analyzer
 pip install .
 ```
 
-## Analysis Scenarios and Results
+---
 
-The library includes three demo scripts to showcase its main features.
+## Usage: 3 Main Demos
 
-### 1. Latest Analysis (`examples/demo.py`)
-Fetches the most recent market data and analyzes current trends.
+Three demo scripts are provided in the `examples/` folder to showcase the library's capabilities.
 
-#### Sample Code
+### 1. Comprehensive Analysis Demo (`examples/demo.py`)
+Generates charts for all major timeframes and runs advanced trend prediction using the latest market data.
+
+#### Code Example
 ```python
-import yfinance as yf
 from metal_analyzer import MetalAnalyzer
 
-ticker = "GC=F"
-analyzer = MetalAnalyzer(ticker=ticker)
-
-# Fetching data externally
-daily_data = yf.download(ticker, period="1y", interval="1d")
-hourly_data = yf.download(ticker, period="1mo", interval="1h")
-
-# Running analysis
-analyzer.set_data(daily_data)
-analyzer.calculate_sma(20)
-analyzer.calculate_rsi(14)
-analyzer.set_multi_timeframe_data(daily_data, hourly_data)
-analyzer.analyze_top_down()
+analyzer = MetalAnalyzer(ticker="GC=F")
+# Fetch data, add it to the analyzer, and run analyze_all()
+# ... (See examples/demo.py for details)
+analyzer.analyze_all()
 ```
 
-#### Output Example
-![Latest Analysis Chart](examples/outputs/demo.png)
+#### Execution Result (Console Output)
+```text
+=== Metal Analyzer Comprehensive Analysis Demo ===
+[1] Fetching data and generating charts...
+[2] Running Advanced Trend Analysis
+==================================================
+   👑 High-Precision Gold Analysis Dashboard 👑
+==================================================
+【Long Trend】  Neutral / Consolidation
+【Momentum】    Strong Downward Pressure
+【Volatility】  Stable
+【Sentiment】   Range Bound
+--------------------------------------------------
+ 🎯 Final Prediction: Continuation Caution
+ ⚠️ Risk Level:       Medium
+ 📝 Comment: Downward bias is strong, but a major acceleration hasn't triggered yet.
+==================================================
+```
+
+#### Output Charts
+````carousel
+![Monthly](examples/outputs/candles/chart_monthly.png)
+<!-- slide -->
+![Weekly](examples/outputs/candles/chart_weekly.png)
+<!-- slide -->
+![Daily](examples/outputs/candles/chart_daily.png)
+<!-- slide -->
+![1H](examples/outputs/candles/chart_1h.png)
+<!-- slide -->
+![15M](examples/outputs/candles/chart_15m.png)
+````
 
 ---
 
-### 2. Jan 30, 2026 Crash Detection (`examples/demo-20260130.py`)
-Simulates the historical price collapse and demonstrates the Sell alert.
+### 2. Crash Acceleration Simulation (`examples/demo-20260130.py`)
+Reproduces the historical crash of Jan 30, 2026, detecting the neckline break and the "Great Crash Acceleration" signal.
 
-#### Execution Result
-```text
-Result: [ALERT] Double Top detected! Peaks: 5591.00, 5467.60. Sell signal as it broke the neckline at 5212.90.
+#### Code Example
+```python
+# Reproduce the market state at 2026-01-30 10:00:00
+run_simulation("20260130", "2026-01-30 10:00:00", "Critical Scenario Analysis")
 ```
 
-#### Chart Image
-![Jan 30 Crash Chart](examples/outputs/demo-20260130.png)
+#### Execution Result (Console Output)
+```text
+==================================================
+   👑 High-Precision Gold Analysis Dashboard 👑
+==================================================
+【Long Trend】  Neutral / Consolidation
+【Momentum】    Strong Downward Pressure
+【Volatility】  Stable
+【Sentiment】   Neckline Breached (Crash Confirmed)
+--------------------------------------------------
+ 🎯 Final Prediction: ⚠️ Great Crash Acceleration
+ ⚠️ Risk Level:       EXTREME
+ 📝 Comment: Key support level broken. Volatility is spiking. Trend bottom is unknown.
+==================================================
+```
+
+#### Output Charts
+````carousel
+![Monthly](examples/outputs/candles/20260130_chart_monthly.png)
+<!-- slide -->
+![Daily](examples/outputs/candles/20260130_chart_daily.png)
+<!-- slide -->
+![4H](examples/outputs/candles/20260130_chart_4h.png)
+<!-- slide -->
+![1H](examples/outputs/candles/20260130_chart_1h.png)
+````
 
 ---
 
-### 3. Dec 30, 2025 Simulation (`examples/demo-20251230.py`)
-Simulates the "Pattern Forming" state just before a drop (neckline not yet broken).
+### 3. Bullish Trend Transition Simulation (`examples/demo-20251230.py`)
+Reproduces the transition from range-bound to a bullish trend on Dec 30, 2025.
 
-#### Execution Result
+#### Execution Result (Console Output)
 ```text
-Double Top Result: Pattern forming, but neckline not broken yet (a break below the neckline confirms the trend reversal).
+==================================================
+   👑 High-Precision Gold Analysis Dashboard 👑
+==================================================
+【Long Trend】  Neutral / Consolidation
+【Momentum】    Calm
+【Volatility】  Stable
+【Sentiment】   Range Bound
+--------------------------------------------------
+ 🎯 Final Prediction: Strong Floor / Rebound
+ ⚠️ Risk Level:       Low
+ 📝 Comment: Buying pressure is dominant or a rebound at range bottom is observed.
+==================================================
 ```
 
-#### Chart Image
-![Dec 30 Simulation Chart](examples/outputs/demo-20251230.png)
+#### Output Charts
+````carousel
+![Daily](examples/outputs/candles/20251230_chart_daily.png)
+<!-- slide -->
+![4H](examples/outputs/candles/20251230_chart_4h.png)
+<!-- slide -->
+![1H](examples/outputs/candles/20251230_chart_1h.png)
+````
+
+---
 
 ## Project Structure
 
-- `metal_analyzer/core/`: Core `MetalAnalyzer` class.
-- `metal_analyzer/indicators/`: SMA, RSI calculations.
-- `metal_analyzer/patterns/`: Chart pattern detection (e.g., Double Top).
-- `metal_analyzer/models/`: Composite logic (e.g., Top-down analysis).
+Detailed descriptions of each file's role in the project.
+
+| Folder | File | Description |
+| :--- | :--- | :--- |
+| `core/` | `analyzer.py` | Main `MetalAnalyzer` class. Orchestrates data management, analysis, and plotting. |
+| `indicators/` | `sma.py` | Moving Average (SMA, EMA) calculation algorithms. |
+| | `rsi.py` | Relative Strength Index (RSI) calculation algorithm. |
+| `patterns/` | `double_top.py` | Double Top (M-Top) detection logic using SciPy filters. |
+| `models/` | `advanced_predictor.py` | High-precision trend prediction engine based on 4 dashboards. |
+| | `top_down.py` | Multi-timeframe top-down analysis logic combining Daily, 4H, and 1H data. |
+| | `signal_entry.py` | Entry and exit signal determination based on technical indicators. |
+| `examples/` | `demo.py` | Comprehensive analysis demo script using the latest market data. |
+| | `demo-20260130.py` | Simulation script for the Jan 2026 crash scenario. |
+| | `demo-20251230.py` | Simulation script for the Dec 2025 trend transition scenario. |

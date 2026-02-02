@@ -2,160 +2,160 @@ import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
 import os
-from ..indicators import calculate_sma, calculate_rsi
+import mplfinance as mpf
+from matplotlib.lines import Line2D
+from ..indicators import calculate_sma, calculate_ema, calculate_rsi
 from ..patterns import detect_double_top
 from ..models import analyze_top_down as run_top_down, determine_entry_signals
+from ..models.advanced_predictor import analyze_advanced_trend
 
 class MetalAnalyzer:
-    """貴金属価格を分析するためのメインクラス。
-
-    Attributes:
-        ticker (str): Yahoo Financeのティッカーシンボル。
-        data (pd.DataFrame): 分析対象のメインデータ。
-        daily_data (pd.DataFrame): トップダウン分析用の日足データ。
-        hourly_data (pd.DataFrame): トップダウン分析用の1時間足データ。
-    """
+    """貴金属価格を分析するためのメインクラス。"""
 
     def __init__(self, ticker="GC=F"):
-        """MetalAnalyzerを初期化する。
-
-        Args:
-            ticker (str): Yahoo Financeのティッカーシンボル。
-        """
         self.ticker = ticker
+        self.timeframe_data = {}
         self.data = None
         self.daily_data = None
         self.hourly_data = None
 
-    def set_data(self, data):
-        """分析対象のデータをセットする。
+    def _get_df(self, keys):
+        """複数の候補キーから有効なデータフレームを取得する。"""
+        for key in keys:
+            df = self.timeframe_data.get(key)
+            if df is not None and not df.empty:
+                return df
+        return None
 
-        Args:
-            data (pd.DataFrame): 分析に使用するメインの時系列データ。
-        """
+    def add_timeframe_data(self, timeframe, data):
+        """特定の時間足のデータを追加する。"""
         if isinstance(data.columns, pd.MultiIndex):
             data.columns = data.columns.get_level_values(0)
-        self.data = data
-
-    def set_multi_timeframe_data(self, daily_data, hourly_data):
-        """トップダウン分析用のデータをセットする。
-
-        Args:
-            daily_data (pd.DataFrame): 日足の価格データ。
-            hourly_data (pd.DataFrame): 1時間足の価格データ。
-        """
-        if isinstance(daily_data.columns, pd.MultiIndex):
-            daily_data.columns = daily_data.columns.get_level_values(0)
-        if isinstance(hourly_data.columns, pd.MultiIndex):
-            hourly_data.columns = hourly_data.columns.get_level_values(0)
+        if not isinstance(data.index, pd.DatetimeIndex):
+            data.index = pd.to_datetime(data.index)
             
-        self.daily_data = daily_data
-        self.hourly_data = hourly_data
+        self.timeframe_data[timeframe] = data
+        
+        norm_tf = timeframe.lower().replace('monthly', '1mo').replace('weekly', '1wk').replace('daily', '1d').replace('hourly', '1h')
+        if norm_tf in ['1d', 'daily']:
+            self.data = data
+            self.daily_data = data
+        elif norm_tf in ['1h', 'hourly']:
+            self.hourly_data = data
 
-    def calculate_sma(self, window=20):
-        """単純移動平均(SMA)を計算し、データフレームに追加する。
+    def analyze_advanced_trend(self):
+        """高度なトレンド予測を実行し、結果を表示する。"""
+        d_df = self._get_df(['Daily', '1d', '1D', 'daily'])
+        if d_df is None: d_df = self.daily_data
+        
+        h4_df = self._get_df(['4h', '4H', '4hourly'])
+        h1_df = self._get_df(['1h', '1H', 'hourly'])
+        if h1_df is None: h1_df = self.hourly_data
+        
+        # 4時間足の補完
+        if h4_df is None and h1_df is not None:
+             h4_df = h1_df.resample('4h').agg({
+                'Open': 'first', 'High': 'max', 'Low': 'min', 'Close': 'last', 'Volume': 'sum'
+             }).dropna()
+             self.add_timeframe_data('4h', h4_df)
 
-        Args:
-            window (int): 平均を取る期間。
-        """
-        if self.data is not None:
-            self.data[f'SMA_{window}'] = calculate_sma(self.data, window)
+        if d_df is None or h4_df is None or h1_df is None:
+            print("【警告】高度な分析には日足、4時間足、1時間足のデータが必要です。")
+            return None
 
-    def calculate_rsi(self, window=14):
-        """RSI(Relative Strength Index)を計算し、データフレームに追加する。
+        # パターン情報の取得
+        dt_detected, dt_details = self.detect_double_top()
+        patterns = {'double_top': dt_detected}
+        if dt_detected:
+            try:
+                import re
+                match = re.search(r"ネックライン ([\d.]+)", dt_details)
+                if match: patterns['neckline'] = float(match.group(1))
+            except: pass
 
-        Args:
-            window (int): RSIの計算期間。
-        """
-        if self.data is not None:
-            self.data['RSI'] = calculate_rsi(self.data, window)
+        res = analyze_advanced_trend(d_df, h4_df, h1_df, patterns=patterns)
+        
+        print("\n" + "="*50)
+        print("   👑 高精度ゴールド分析ダッシュボード 👑")
+        print("="*50)
+        print(f"【長期トレンド】 {res['dashboard_1_trend']}")
+        print(f"【モメンタム】   {res['dashboard_2_momentum']}")
+        print(f"【加速/ボラ】    {res['dashboard_3_volatility']}")
+        print(f"【センチメント】 {res['dashboard_4_sentiment']}")
+        print("-" * 50)
+        print(f" 🎯 最終予測: {res['final_prediction']}")
+        print(f" ⚠️ リスク:   {res['risk_level']}")
+        print(f" 📝 コメント: {res['comment']}")
+        print("="*50 + "\n")
+        
+        return res
 
-    def analyze_entry_points(self):
-        """SMAクロスとRSIに基づいてエントリーシグナルを判定する。"""
-        if self.data is not None:
-            self.data['Signal'] = determine_entry_signals(self.data)
+    def plot_candlestick(self, timeframe, filename=None, title=None):
+        df = self.timeframe_data.get(timeframe)
+        if df is None or df.empty:
+            print(f"時間足 {timeframe} のデータがありません。")
+            return
+
+        for window in [20, 50, 200]:
+            col_name = f'EMA_{window}'
+            if col_name not in df.columns:
+                df[col_name] = calculate_ema(df, window)
+
+        plot_df = df.tail(100)
+        apds = []
+        if not plot_df['EMA_20'].isnull().all():
+            apds.append(mpf.make_addplot(plot_df['EMA_20'], color='cyan', width=1.0))
+        if not plot_df['EMA_50'].isnull().all():
+            apds.append(mpf.make_addplot(plot_df['EMA_50'], color='yellow', width=1.0))
+        if not plot_df['EMA_200'].isnull().all():
+            apds.append(mpf.make_addplot(plot_df['EMA_200'], color='magenta', width=1.5))
+
+        custom_style = mpf.make_mpf_style(
+            base_mpf_style='charles', marketcolors=mpf.make_marketcolors(up='green', down='red', inherit=True),
+            gridcolor='dimgray', facecolor='black', figcolor='black',
+            rc={'text.color': 'white', 'axes.labelcolor': 'white', 'xtick.color': 'white',
+                'ytick.color': 'white', 'axes.edgecolor': 'white', 'figure.titlesize': 'x-large'}
+        )
+
+        title = title or f"{self.ticker} - {timeframe} (Dark Mode)"
+        if filename: os.makedirs(os.path.dirname(filename) if os.path.dirname(filename) else '.', exist_ok=True)
+
+        fig, axlist = mpf.plot(plot_df, type='candle', style=custom_style, addplot=apds, title=title, 
+                 ylabel='Price', volume=True if 'Volume' in plot_df.columns else False,
+                 savefig=dict(fname=filename, bbox_inches='tight') if filename else None,
+                 tight_layout=True, scale_padding=1.5, figratio=(16, 9), datetime_format='%m/%d %H:%M', returnfig=True)
+        
+        if len(apds) > 0:
+            labels = ['EMA 20', 'EMA 50', 'EMA 200'][:len(apds)]
+            colors = ['cyan', 'yellow', 'magenta'][:len(apds)]
+            handles = [Line2D([0], [0], color=c, lw=1.5) for c in colors]
+            axlist[0].legend(handles, labels, loc='upper left', fontsize='small', facecolor='black', edgecolor='white', labelcolor='white')
+            if filename: fig.savefig(filename, bbox_inches='tight', facecolor='black')
+
+        if filename: print(f"【完了】{timeframe} チャートを保存しました: {filename}")
 
     def detect_double_top(self, threshold=0.03, lookback=100):
-        """ダブルトップパターンの検知を実行する。
+        df = self._get_df(['1h', '1H', 'hourly'])
+        if df is None: df = self.hourly_data
+        return detect_double_top(df, threshold, lookback)
 
-        Args:
-            threshold (float): ピーク間の価格差許容率。
-            lookback (int): 探索対象とする過去のデータ数。
-
-        Returns:
-            tuple: (is_detected, details) の結果。
-        """
-        return detect_double_top(self.hourly_data, threshold, lookback)
-
-    def analyze_top_down(self):
-        """マルチタイムフレームでのトップダウン分析を実行し、結果を表示する。
-
-        Returns:
-            str: 最終的な判定シグナル。
-        """
-        if self.daily_data is None or self.hourly_data is None:
-            print("データがありません。")
-            return
-            
-        signal, prediction, d_trend, h_trend, h_rsi = run_top_down(self.daily_data, self.hourly_data)
+    def analyze_all(self, output_dir="examples/outputs/candles", prefix=""):
+        """全時間足の分析とプロットを一括実行する。"""
+        print(f"\n--- 総合分析およびチャート生成開始 (Prefix: {prefix}) ---")
+        self.analyze_advanced_trend()
         
-        print("\n--- トップダウン分析結果 ---")
-        print(f"【日足 (長期)】 トレンド: {d_trend}")
-        print(f"【1時間足 (短期)】 状態: {h_trend}, RSI: {h_rsi:.2f}")
-        print(f"\n★ 判定シグナル: {signal}")
-        print(f"★ 短期予測コメント: {prediction}")
-        print("------------------------------------------\n")
-        
-        return signal
+        for tf in list(self.timeframe_data.keys()):
+            fname = os.path.join(output_dir, f"{prefix}chart_{tf.lower()}.png")
+            self.plot_candlestick(tf, filename=fname)
 
-    def plot_data(self, filename="analysis_plot.png"):
-        """分析結果を可視化したグラフを保存する。
-
-        Args:
-            filename (str): 保存するファイル名またはパス。
-        """
-        if self.data is None or self.data.empty:
-            print("データがありません。")
-            return
-
-        fig, (ax1, ax2) = plt.subplots(2, 1, figsize=(12, 8), gridspec_kw={'height_ratios': [3, 1]})
-
-        # 価格とSMAのプロット
-        ax1.plot(self.data.index, self.data['Close'], label='Close Price', alpha=0.5)
-        
-        for col in self.data.columns:
-            if 'SMA' in col:
-                ax1.plot(self.data.index, self.data[col], label=col)
-        
-        ax1.set_title(f'{self.ticker} Price Analysis')
-        ax1.set_ylabel('Price (USD)')
-        
-        # 売買シグナルのプロット
-        if 'Signal' in self.data.columns:
-            buy_signals = self.data[self.data['Signal'] == 1]
-            ax1.scatter(buy_signals.index, buy_signals['Close'], marker='^', color='green', label='Buy Signal', s=100, zorder=5)
-            
-            sell_signals = self.data[self.data['Signal'] == -1]
-            ax1.scatter(sell_signals.index, sell_signals['Close'], marker='v', color='red', label='Sell Signal', s=100, zorder=5)
-            
-        ax1.legend()
-        ax1.grid(True)
-
-        # RSIのプロット
-        if 'RSI' in self.data.columns:
-            ax2.plot(self.data.index, self.data['RSI'], label='RSI', color='purple')
-            ax2.axhline(70, linestyle='--', alpha=0.5, color='red')
-            ax2.axhline(30, linestyle='--', alpha=0.5, color='green')
-            ax2.set_title('Relative Strength Index (RSI)')
-            ax2.set_ylabel('RSI')
-            ax2.set_ylim(0, 100)
-            ax2.legend()
-            ax2.grid(True)
-
-        plt.tight_layout()
-        
-        os.makedirs(os.path.dirname(filename) if os.path.dirname(filename) else '.', exist_ok=True)
-        
-        plt.savefig(filename)
-        print(f"グラフを {filename} として保存しました。")
-        plt.close()
+    def calculate_ema(self, window=20, timeframe='default'):
+        df = self.timeframe_data.get(timeframe)
+        if df is not None: df[f'EMA_{window}'] = calculate_ema(df, window)
+    def calculate_sma(self, window=20, timeframe='default'):
+        df = self.timeframe_data.get(timeframe)
+        if df is not None: df[f'SMA_{window}'] = calculate_sma(df, window)
+    def calculate_rsi(self, window=14, timeframe='default'):
+        df = self.timeframe_data.get(timeframe)
+        if df is not None: df['RSI'] = calculate_rsi(df, window)
+    def set_data(self, data): self.add_timeframe_data('Daily', data)
+    def set_multi_timeframe_data(self, d, h): self.add_timeframe_data('Daily', d); self.add_timeframe_data('1h', h)
