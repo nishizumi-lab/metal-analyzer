@@ -1,3 +1,8 @@
+"""テクニカル分析指標を提供するパッケージ。
+
+SMA, EMA, RSI などの基本的な指標計算ロジックが含まれます。
+"""
+
 from .sma import calculate_sma, calculate_ema
 from .rsi import calculate_rsi
 

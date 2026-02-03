@@ -1,10 +1,16 @@
+"""最新の市場データを使用した総合的な分析デモスクリプト。
+
+このスクリプトは、Yahoo Financeから最新のゴールド価格データを取得し、
+全時間足（月・週・日・1時・15分）のチャート生成と高度トレンド予測を実行します。
+"""
+
 import yfinance as yf
 import os
 import pandas as pd
 from metal_analyzer import MetalAnalyzer
 
 def run_multi_timeframe_demo():
-    """最新データに基づいた全時間足チャートと高度分析デモ。"""
+    """最新データに基づいた全時間足チャートと高度分析デモを実行する。"""
     print("=== Metal Analyzer 総合分析デモ ===")
     
     ticker = "GC=F"

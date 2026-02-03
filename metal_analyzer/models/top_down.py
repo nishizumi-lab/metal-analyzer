@@ -1,15 +1,29 @@
+"""トップダウン分析ロジックを提供するモジュール。
+
+このモジュールは、長期足（日足）と短期足（1時間足）を組み合わせ、
+上位足のトレンドに沿った取引判断を行う関数を提供します。
+"""
+
 from ..indicators.sma import calculate_sma
 from ..indicators.rsi import calculate_rsi
 
 def analyze_top_down(daily_data, hourly_data):
-    """トップダウン分析を実行し、日足と1時間足を組み合わせて判定を行う。
+    """日足と1時間足を組み合わせたトップダウン分析を実行する。
+
+    日足で環境認識（長期トレンド）を行い、1時間足でエントリーの
+    タイミング（短期トレンドとボラティリティ）を判定します。
 
     Args:
-        daily_data (pd.DataFrame): 日足のデータフレーム。
-        hourly_data (pd.DataFrame): 1時間足のデータフレーム。
+        daily_data (pd.DataFrame): 日足の価格データ。
+        hourly_data (pd.DataFrame): 1時間足の価格データ。
 
     Returns:
-        tuple: (signal, prediction, daily_trend, hourly_trend, hourly_rsi) のタプル。
+        tuple: (signal, prediction, daily_trend, hourly_trend, hourly_rsi)
+            - signal (str): 売買シグナル（例: "買い (STRONG BUY)"）。
+            - prediction (str): 方向性の予測コメント。
+            - daily_trend (str): 日足のトレンド状態。
+            - hourly_trend (str): 1時間足のトレンド状態。
+            - hourly_rsi (float): 1時間足の最終RSI値。
     """
     if daily_data.empty or hourly_data.empty:
         return "様子見 (Wait)", "データがありません。", "不明", "不明", 0

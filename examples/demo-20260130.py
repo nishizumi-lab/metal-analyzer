@@ -1,10 +1,22 @@
+"""歴史的な暴落局面を再現するシミュレーションスクリプト。
+
+2026年1月30日のゴールド大暴落局面を再現し、高度予測エンジンが
+「大暴落加速」シグナルを正しく検知できるかを確認します。
+"""
+
 import yfinance as yf
 import os
 import pandas as pd
 from metal_analyzer import MetalAnalyzer
 
 def run_simulation(tag, end_time, title_suffix):
-    """汎用シミュレーション実行器。"""
+    """汎用シミュレーション実行器。
+
+    Args:
+        tag (str): 出力ファイルに使用する識別タグ。
+        end_time (str): 分析を終了する時間。
+        title_suffix (str): 出力時のタイトル。
+    """
     print(f"\n{'='*60}\n シミュレーション: {title_suffix} ({end_time})\n{'='*60}")
     
     ticker = "GC=F"

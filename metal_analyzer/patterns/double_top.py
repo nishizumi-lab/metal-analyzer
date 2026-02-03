@@ -1,19 +1,30 @@
+"""チャートパターン検知を行うモジュール。
+
+このモジュールは、SciPyを使用して価格データから特定の形状（ダブルトップなど）を
+自動的に検知する機能を提供します。
+"""
+
 import numpy as np
 from scipy.signal import find_peaks
 
 def detect_double_top(hourly_data, threshold=0.03, lookback=100):
-    """ダブルトップ（Wトップ）パターンを検知し、ネックライン割れで売りシグナルを出す。
+    """ダブルトップ（Mトップ）パターンを検知し、ネックライン割れで売りシグナルを判定する。
+
+    価格データから2つの山を探し、その高さが一定の範囲内であること、および
+    現在価格がその間の谷（ネックライン）を下回っているかを確認します。
 
     Args:
-        hourly_data (pd.DataFrame): 1時間足のデータフレーム。
+        hourly_data (pd.DataFrame): 1時間足などの価格データ。'Close' 列が必要。
         threshold (float): 2つの頂点の価格差の許容割合。デフォルト 0.03 (3%)。
-        lookback (int): ピーク探索に使う過去データの期間（行数）。
+        lookback (int): 分析対象とする過去のデータ数。デフォルト 100。
 
     Returns:
-        tuple: (is_detected (bool), signal_details (str)) のタプル。
+        tuple: (is_detected, signal_details)
+            is_detected (bool): パターンが成立し、売り条件を満たしているか。
+            signal_details (str): 検知結果の詳細メッセージ（日本語）。
     """
     if hourly_data is None or hourly_data.empty:
-         return False, "データがありません"
+         return False, "分析対象のデータがありません"
 
     # 分析対象データの取得（直近 lookback 期間）
     df = hourly_data.iloc[-lookback:].copy()
@@ -56,4 +67,4 @@ def detect_double_top(hourly_data, threshold=0.03, lookback=100):
     if current_price < neckline_price:
          return True, f"ダブルトップを検知しました！ ピーク: {peak1_price:.2f}, {peak2_price:.2f}. ネックライン {neckline_price:.2f} を下回ったため、売りシグナルです。"
     
-    return False, f"パターン形成中ですが、ネックラインを割り込んでいません（ネックラインを下回ることで下降への転換が確定します）。ネックライン: {neckline_price:.2f}, 現在値: {current_price:.2f}"
+    return False, f"パターン形成中ですが、ネックラインを割り込んでいません。ネックライン: {neckline_price:.2f}, 現在値: {current_price:.2f}"

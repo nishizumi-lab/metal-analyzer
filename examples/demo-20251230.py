@@ -1,10 +1,22 @@
+"""レンジ相場からのトレンド転換局面を再現するシミュレーションスクリプト。
+
+2025年12月30日の相場を再現し、底入れからの反発や上昇トレンドの
+きざしを高度予測エンジンがどう判定するかを確認します。
+"""
+
 import yfinance as yf
 import os
 import pandas as pd
 from metal_analyzer import MetalAnalyzer
 
 def run_simulation(tag, end_time, title_suffix):
-    """汎用シミュレーション実行器。"""
+    """汎用シミュレーション実行器。
+
+    Args:
+        tag (str): 出力ファイルに使用する識別タグ。
+        end_time (str): 分析を終了する時間。
+        title_suffix (str): 出力時のタイトル。
+    """
     print(f"\n{'='*60}\n シミュレーション: {title_suffix} ({end_time})\n{'='*60}")
     
     ticker = "GC=F"

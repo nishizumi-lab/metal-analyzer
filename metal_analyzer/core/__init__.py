@@ -1,1 +1,3 @@
-# core/__init__.py - Empty file to make it a package
+"""Metal Analyzer のコア機能を提供するパッケージ。"""
+
+# core/__init__.py - Package marker

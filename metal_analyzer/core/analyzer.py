@@ -1,3 +1,9 @@
+"""貴金属価格分析のコア機能を提供するモジュール。
+
+このモジュールは、各種時間足データの管理、テクニカル分析、およびチャート生成を
+統括する MetalAnalyzer クラスを提供します。
+"""
+
 import pandas as pd
 import matplotlib.pyplot as plt
 import numpy as np
@@ -10,9 +16,22 @@ from ..models import analyze_top_down as run_top_down, determine_entry_signals
 from ..models.advanced_predictor import analyze_advanced_trend
 
 class MetalAnalyzer:
-    """貴金属価格を分析するためのメインクラス。"""
+    """貴金属価格を分析するためのメインクラス。
+
+    Attributes:
+        ticker (str): 分析対象のティッカーシンボル（例: "GC=F"）。
+        timeframe_data (dict): 時間足をキーとし、Pandas DataFrameを値とする辞書。
+        data (pd.DataFrame): 日足データ（後方互換性のために保持）。
+        daily_data (pd.DataFrame): 日足データ。
+        hourly_data (pd.DataFrame): 1時間足データ。
+    """
 
     def __init__(self, ticker="GC=F"):
+        """MetalAnalyzer を初期化する。
+
+        Args:
+            ticker (str): 分析対象のティッカーシンボル。デフォルトは "GC=F" (Gold)。
+        """
         self.ticker = ticker
         self.timeframe_data = {}
         self.data = None
@@ -20,7 +39,14 @@ class MetalAnalyzer:
         self.hourly_data = None
 
     def _get_df(self, keys):
-        """複数の候補キーから有効なデータフレームを取得する。"""
+        """複数の候補キーから有効なデータフレームを取得する。
+
+        Args:
+            keys (list): 検索する時間足キーのリスト。
+
+        Returns:
+            pd.DataFrame or None: 見つかったデータフレーム。見つからない場合は None。
+        """
         for key in keys:
             df = self.timeframe_data.get(key)
             if df is not None and not df.empty:
@@ -28,7 +54,12 @@ class MetalAnalyzer:
         return None
 
     def add_timeframe_data(self, timeframe, data):
-        """特定の時間足のデータを追加する。"""
+        """特定の時間足のデータを追加する。
+
+        Args:
+            timeframe (str): 時間足の名称（例: "Daily", "1h"）。
+            data (pd.DataFrame): OHLCVデータを含むデータフレーム。
+        """
         if isinstance(data.columns, pd.MultiIndex):
             data.columns = data.columns.get_level_values(0)
         if not isinstance(data.index, pd.DatetimeIndex):
@@ -44,7 +75,14 @@ class MetalAnalyzer:
             self.hourly_data = data
 
     def analyze_advanced_trend(self):
-        """高度なトレンド予測を実行し、結果を表示する。"""
+        """高度なトレンド予測を実行し、結果を出力する。
+
+        日足、4時間足、1時間足、およびチャートパターンを使用して、
+        多角的な相場分析（4つのダッシュボード）を実行します。
+
+        Returns:
+            dict or None: 分析結果を含む辞書。データ不足の場合は None。
+        """
         d_df = self._get_df(['Daily', '1d', '1D', 'daily'])
         if d_df is None: d_df = self.daily_data
         
@@ -91,6 +129,15 @@ class MetalAnalyzer:
         return res
 
     def plot_candlestick(self, timeframe, filename=None, title=None):
+        """特定の時間足のローソク足チャートを生成・保存する。
+
+        EMA (20, 50, 200) を重畳し、ダークモードで出力します。
+
+        Args:
+            timeframe (str): 描画対象の時間足キー。
+            filename (str, optional): 保存先のパス。指定しない場合は表示のみ（環境に依存）。
+            title (str, optional): チャートのタイトル。
+        """
         df = self.timeframe_data.get(timeframe)
         if df is None or df.empty:
             print(f"時間足 {timeframe} のデータがありません。")
@@ -135,12 +182,26 @@ class MetalAnalyzer:
         if filename: print(f"【完了】{timeframe} チャートを保存しました: {filename}")
 
     def detect_double_top(self, threshold=0.03, lookback=100):
+        """ダブルトップ（Mトップ）パターンを検知する。
+
+        Args:
+            threshold (float): 山の高さの許容誤差（割合）。
+            lookback (int): 参照する直近のデータポイント数。
+
+        Returns:
+            tuple: (bool, str) 検知の有無と詳細メッセージ。
+        """
         df = self._get_df(['1h', '1H', 'hourly'])
         if df is None: df = self.hourly_data
         return detect_double_top(df, threshold, lookback)
 
     def analyze_all(self, output_dir="examples/outputs/candles", prefix=""):
-        """全時間足の分析とプロットを一括実行する。"""
+        """全時間足の分析とプロットを一括実行する。
+
+        Args:
+            output_dir (str): チャート画像の保存先ディレクトリ。
+            prefix (str): ファイル名の接頭辞。
+        """
         print(f"\n--- 総合分析およびチャート生成開始 (Prefix: {prefix}) ---")
         self.analyze_advanced_trend()
         
@@ -149,13 +210,49 @@ class MetalAnalyzer:
             self.plot_candlestick(tf, filename=fname)
 
     def calculate_ema(self, window=20, timeframe='default'):
+        """指数平滑移動平均 (EMA) を計算してデータフレームに追加する。
+
+        Args:
+            window (int): 計算期間。
+            timeframe (str): 対象の時間足キー。
+        """
         df = self.timeframe_data.get(timeframe)
         if df is not None: df[f'EMA_{window}'] = calculate_ema(df, window)
+
     def calculate_sma(self, window=20, timeframe='default'):
+        """単純移動平均 (SMA) を計算してデータフレームに追加する。
+
+        Args:
+            window (int): 計算期間。
+            timeframe (str): 対象の時間足キー。
+        """
         df = self.timeframe_data.get(timeframe)
         if df is not None: df[f'SMA_{window}'] = calculate_sma(df, window)
+
     def calculate_rsi(self, window=14, timeframe='default'):
+        """相対力指数 (RSI) を計算してデータフレームに追加する。
+
+        Args:
+            window (int): 計算期間。
+            timeframe (str): 対象の時間足キー。
+        """
         df = self.timeframe_data.get(timeframe)
         if df is not None: df['RSI'] = calculate_rsi(df, window)
-    def set_data(self, data): self.add_timeframe_data('Daily', data)
-    def set_multi_timeframe_data(self, d, h): self.add_timeframe_data('Daily', d); self.add_timeframe_data('1h', h)
+
+    def set_data(self, data):
+        """日足データをセットする（互換用）。
+
+        Args:
+            data (pd.DataFrame): 日足データ。
+        """
+        self.add_timeframe_data('Daily', data)
+
+    def set_multi_timeframe_data(self, d, h):
+        """日足と1時間足データをセットする（互換用）。
+
+        Args:
+            d (pd.DataFrame): 日足データ。
+            h (pd.DataFrame): 1時間足データ。
+        """
+        self.add_timeframe_data('Daily', d)
+        self.add_timeframe_data('1h', h)

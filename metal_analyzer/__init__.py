@@ -1,3 +1,9 @@
+"""Metal Analyzer パッケージ。
+
+貴金属（ゴールドなど）の市場価格を分析し、トレンド判定や
+特定のチャートパターンを検知するための機能を提供します。
+"""
+
 from .core.analyzer import MetalAnalyzer
 from . import indicators
 from . import patterns

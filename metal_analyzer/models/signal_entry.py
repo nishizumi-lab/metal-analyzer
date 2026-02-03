@@ -1,13 +1,22 @@
+"""テクニカル指標に基づく売買シグナル判定モジュール。
+
+このモジュールは、移動平均線のクロスオーバーやRSIの閾値を利用して、
+具体的なエントリーポイントを判定する関数を提供します。
+"""
+
 import pandas as pd
 
 def determine_entry_signals(df):
-    """SMAクロスとRSIに基づいて売買シグナルを判定する。
+    """テクニカル指標（SMAクロス、RSI）に基づいて売買シグナルを判定する。
 
     Args:
-        df (pd.DataFrame): 'SMA_20', 'SMA_50', 'RSI' を含むデータフレーム。
+        df (pd.DataFrame): 判定に必要な列（'SMA_20', 'SMA_50', 'RSI'）を含むデータフレーム。
 
     Returns:
-        pd.Series: 判定シグナル (-1: 売り, 0: 様子見, 1: 買い)。
+        pd.Series: 判定シグナル。
+            - 1: 買いシグナル (Golden Cross or Oversight)
+            - -1: 売りシグナル (Dead Cross or Overbought)
+            - 0: 様子見
     """
     signals = pd.Series(0, index=df.index)
     
