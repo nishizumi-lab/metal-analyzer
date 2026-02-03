@@ -151,13 +151,13 @@ pip install .
 
 | フォルダ | ファイル | 説明 |
 | :--- | :--- | :--- |
-| `core/` | `analyzer.py` | メインクラス `MetalAnalyzer` 。データの管理、分析の実行、プロットの指示を統括。 |
-| `indicators/` | `sma.py` | 移動平均線（SMA, EMA）の計算アルゴリズム。 |
-| | `rsi.py` | 相対力指数（RSI）の計算アルゴリズム。 |
-| `patterns/` | `double_top.py` | SciPyを用いたダブルトップ（Mトップ）検知ロジック。 |
-| `models/` | `advanced_predictor.py` | 高精度トレンド予測エンジン。 |
-| | `top_down.py` | マルチタイムフレーム分析ロジック。 |
-| | `signal_entry.py` | エントリー・エグジット判定。 |
-| `examples/` | `demo.py` | 総合分析デモスクリプト。 |
-| | `demo-20260130.py` | 暴落局面シミュレーション。 |
-| | `demo-20251230.py` | トレンド転換シミュレーション。 |
+| `core/` | [`analyzer.py`](metal_analyzer/core/analyzer.py) | メインクラス `MetalAnalyzer` 。データの管理、分析の実行、プロットの指示を統括。 |
+| `indicators/` | [`sma.py`](metal_analyzer/indicators/sma.py) | 移動平均線（SMA, EMA）の計算アルゴリズム。 |
+| | [`rsi.py`](metal_analyzer/indicators/rsi.py) | 相対力指数（RSI）の計算アルゴリズム。 |
+| `patterns/` | [`double_top.py`](metal_analyzer/patterns/double_top.py) | SciPyを用いたダブルトップ（Mトップ）検知ロジック。 |
+| `models/` | [`advanced_predictor.py`](metal_analyzer/models/advanced_predictor.py) | 高精度トレンド予測エンジン。 |
+| | [`top_down.py`](metal_analyzer/models/top_down.py) | マルチタイムフレーム分析ロジック。 |
+| | [`signal_entry.py`](metal_analyzer/models/signal_entry.py) | エントリー・エグジット判定。 |
+| `examples/` | [`demo.py`](examples/demo.py) | 総合分析デモスクリプト。 |
+| | [`demo-20260130.py`](examples/demo-20260130.py) | 暴落局面シミュレーション。 |
+| | [`demo-20251230.py`](examples/demo-20251230.py) | トレンド転換シミュレーション。 |

@@ -151,13 +151,13 @@ Detailed descriptions of each file's role in the project.
 
 | Folder | File | Description |
 | :--- | :--- | :--- |
-| `core/` | `analyzer.py` | Main `MetalAnalyzer` class. Orchestrates data management, analysis, and plotting. |
-| `indicators/` | `sma.py` | Moving Average (SMA, EMA) calculation algorithms. |
-| | `rsi.py` | Relative Strength Index (RSI) calculation algorithm. |
-| `patterns/` | `double_top.py` | Double Top (M-Top) detection logic using SciPy filters. |
-| `models/` | `advanced_predictor.py` | High-precision trend prediction engine based on 4 dashboards. |
-| | `top_down.py` | Multi-timeframe top-down analysis logic. |
-| | `signal_entry.py` | Entry and exit signal determination logic. |
-| `examples/` | `demo.py` | Comprehensive analysis demo script using the latest market data. |
-| | `demo-20260130.py` | Simulation script for the Jan 2026 crash scenario. |
-| | `demo-20251230.py` | Simulation script for the Dec 2025 trend transition scenario. |
+| `core/` | [`analyzer.py`](metal_analyzer/core/analyzer.py) | Main `MetalAnalyzer` class. Orchestrates data management, analysis, and plotting. |
+| `indicators/` | [`sma.py`](metal_analyzer/indicators/sma.py) | Moving Average (SMA, EMA) calculation algorithms. |
+| | [`rsi.py`](metal_analyzer/indicators/rsi.py) | Relative Strength Index (RSI) calculation algorithm. |
+| `patterns/` | [`double_top.py`](metal_analyzer/patterns/double_top.py) | Double Top (M-Top) detection logic using SciPy filters. |
+| `models/` | [`advanced_predictor.py`](metal_analyzer/models/advanced_predictor.py) | High-precision trend prediction engine based on 4 dashboards. |
+| | [`top_down.py`](metal_analyzer/models/top_down.py) | Multi-timeframe top-down analysis logic. |
+| | [`signal_entry.py`](metal_analyzer/models/signal_entry.py) | Entry and exit signal determination logic. |
+| `examples/` | [`demo.py`](examples/demo.py) | Comprehensive analysis demo script using the latest market data. |
+| | [`demo-20260130.py`](examples/demo-20260130.py) | Simulation script for the Jan 2026 crash scenario. |
+| | [`demo-20251230.py`](examples/demo-20251230.py) | Simulation script for the Dec 2025 trend transition scenario. |
