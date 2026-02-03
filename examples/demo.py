@@ -33,7 +33,7 @@ def run_multi_timeframe_demo():
         analyzer.add_timeframe_data(name, data)
         analyzer.plot_candlestick(name, filename=os.path.join(output_dir, f"chart_{name.lower()}.png"))
 
-    print(f"\n[2] 高度なトレンド分析の解析")
+    print(f"\n[2] 高度なトレンド分析")
     analyzer.analyze_advanced_trend()
 
     print(f"\n=== 全工程が完了しました ===")

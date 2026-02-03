@@ -10,7 +10,7 @@ import numpy as np
 import os
 import mplfinance as mpf
 from matplotlib.lines import Line2D
-from ..indicators import calculate_sma, calculate_ema, calculate_rsi
+from ..indicators import calculate_sma, calculate_ema, calculate_rsi, calculate_bollinger_bands
 from ..patterns import detect_double_top
 from ..models import analyze_top_down as run_top_down, determine_entry_signals
 from ..models.advanced_predictor import analyze_advanced_trend
@@ -114,16 +114,16 @@ class MetalAnalyzer:
         res = analyze_advanced_trend(d_df, h4_df, h1_df, patterns=patterns)
         
         print("\n" + "="*50)
-        print("   👑 高精度ゴールド分析ダッシュボード 👑")
+        print(" ■高精度ゴールド分析ダッシュボード")
         print("="*50)
-        print(f"【長期トレンド】 {res['dashboard_1_trend']}")
-        print(f"【モメンタム】   {res['dashboard_2_momentum']}")
-        print(f"【加速/ボラ】    {res['dashboard_3_volatility']}")
+        print(f"【長期トレンド： {res['dashboard_1_trend']}")
+        print(f"【モメンタム： {res['dashboard_2_momentum']}")
+        print(f"【加速/ボラ： {res['dashboard_3_volatility']}")
         print(f"【センチメント】 {res['dashboard_4_sentiment']}")
         print("-" * 50)
-        print(f" 🎯 最終予測: {res['final_prediction']}")
-        print(f" ⚠️ リスク:   {res['risk_level']}")
-        print(f" 📝 コメント: {res['comment']}")
+        print(f" 最終予測: {res['final_prediction']}")
+        print(f" リスク: {res['risk_level']}")
+        print(f" コメント: {res['comment']}")
         print("="*50 + "\n")
         
         return res
@@ -157,6 +157,12 @@ class MetalAnalyzer:
         if not plot_df['EMA_200'].isnull().all():
             apds.append(mpf.make_addplot(plot_df['EMA_200'], color='magenta', width=1.5))
 
+        # ボリンジャーバンドの計算
+        mb, ub, lb = calculate_bollinger_bands(plot_df, window=20, num_std=2)
+        if mb is not None:
+            apds.append(mpf.make_addplot(ub, color='gray', width=0.5, alpha=0.5))
+            apds.append(mpf.make_addplot(lb, color='gray', width=0.5, alpha=0.5))
+
         custom_style = mpf.make_mpf_style(
             base_mpf_style='charles', marketcolors=mpf.make_marketcolors(up='green', down='red', inherit=True),
             gridcolor='dimgray', facecolor='black', figcolor='black',
@@ -164,7 +170,7 @@ class MetalAnalyzer:
                 'ytick.color': 'white', 'axes.edgecolor': 'white', 'figure.titlesize': 'x-large'}
         )
 
-        title = title or f"{self.ticker} - {timeframe} (Dark Mode)"
+        title = title or f"{self.ticker} - {timeframe}"
         if filename: os.makedirs(os.path.dirname(filename) if os.path.dirname(filename) else '.', exist_ok=True)
 
         fig, axlist = mpf.plot(plot_df, type='candle', style=custom_style, addplot=apds, title=title, 
@@ -172,11 +178,16 @@ class MetalAnalyzer:
                  savefig=dict(fname=filename, bbox_inches='tight') if filename else None,
                  tight_layout=True, scale_padding=1.5, figratio=(16, 9), datetime_format='%m/%d %H:%M', returnfig=True)
         
-        if len(apds) > 0:
-            labels = ['EMA 20', 'EMA 50', 'EMA 200'][:len(apds)]
-            colors = ['cyan', 'yellow', 'magenta'][:len(apds)]
-            handles = [Line2D([0], [0], color=c, lw=1.5) for c in colors]
+        if len(axlist) > 0:
+            # ボリンジャーバンドの背景色塗り
+            if mb is not None:
+                axlist[0].fill_between(range(len(plot_df)), lb.values, ub.values, color='gray', alpha=0.1)
+
+            # 凡例
+            handles = [Line2D([0], [0], color=c, lw=1.5) for c in ['cyan', 'yellow', 'magenta', 'gray']]
+            labels = ['EMA 20', 'EMA 50', 'EMA 200', 'Bollinger Bands (2σ)']
             axlist[0].legend(handles, labels, loc='upper left', fontsize='small', facecolor='black', edgecolor='white', labelcolor='white')
+            
             if filename: fig.savefig(filename, bbox_inches='tight', facecolor='black')
 
         if filename: print(f"【完了】{timeframe} チャートを保存しました: {filename}")
