@@ -4,6 +4,7 @@
 """
 
 from .top_down import analyze_top_down
-from .signal_entry import determine_entry_signals
+from .top_down import analyze_top_down
+from .short_trend_predictor import analyze_short_trend
 
-__all__ = ['analyze_top_down', 'determine_entry_signals']
+__all__ = ['analyze_top_down', 'analyze_short_trend']

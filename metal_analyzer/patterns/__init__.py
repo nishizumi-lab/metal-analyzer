@@ -4,5 +4,6 @@
 """
 
 from .double_top import detect_double_top
+from .double_bottom import detect_double_bottom
 
-__all__ = ['detect_double_top']
+__all__ = ['detect_double_top', 'detect_double_bottom']

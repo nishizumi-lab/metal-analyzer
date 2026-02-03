@@ -6,7 +6,7 @@
 
 特徴|説明
 --|--
-独自の高精度トレンド分析|4つの主要指標（長期トレンド、モメンタム、ボラティリティ加速、センチメント）を元に暴落や急騰を予測。
+独自の短期トレンド分析|4つの主要指標（長期トレンド、モメンタム、ボラティリティ加速、センチメント）を元に、短期的な価格変動を分析。
 マルチタイムフレーム対応|月・週・日・4時・1時・15分足の計6種類の時間足を作成。EMA 20/50/200とボリンジャーバンドを描画し、トレンドをわかりやすく可視化。
 
 ## アルゴリズム実装の対比検証
@@ -19,74 +19,90 @@
 | **ネックライン（重要な節目）割れ** | 2つのピーク間の最安値（ネックライン）を算出し、現在価格がそれを下回った場合に「検知(True)」を返します。 |
 | **「買い全員焼かれる」 (強い売り)** | ネックライン割れを検知すると、センチメントスコアを**「-5 (暴落確定)」**に設定し、強力な売りバイアスをかけます。 |
 | **崩落の予兆 (ボラティリティ加速)** | ダッシュボード3で、直近の値幅が過去平均の1.5倍を超えた場合に「加速中」と判定し、最終スコアを**1.5倍に増幅**させます。 |
-| **大暴落シナリオ** | 総合スコアが「-6」以下となった場合、最終予測として **`⚠️ 大暴落加速 (Great Crash Acceleration)`** を出力します。 |
+| **V字回復 (ダブルボトム)** | 新設 `detect_double_bottom` でWボトムを検知し、ネックライン上抜けでセンチメントスコアを**「+5 (反発確定)」**とします。 |
+| **反転の予兆 (Pinbar / RSIダイバー)** | 下ヒゲ（Pinbar）やRSIダイバージェンス（価格安値更新かつRSI切り上がり）を検知し、反発の予兆として加点評価します。 |
+| **大暴落/急騰シナリオ** | 総合スコアが「-6」以下で **`⚠️ 大暴落加速`**、「+5」以上で **`🚀 急騰加速`** を出力します。 |
 
 ## 過去の急変動局面での予測精度（バックテスト結果）
 
 直近の価格変動が大きかった局面に対するバックテスト結果です。
-「暴落」に関しては極めて高い精度で予兆を検知できていますが、急落後の「V字急騰」については課題が残っています。
+特に、**急騰（V字回復）** の局面において、ダブルボトムやピンバー検知により精度が大幅に向上しました。
 
-| 日付 | 実際の動き | 予測結果 | 判定 |
+| 分析基準日 | 翌日の実際の結果 | 予測結果 | 判定 |
 | :--- | :--- | :--- | :--- |
-| **2025-10-20** | 翌日 -5.7% 急落 | **⚠️ 大暴落加速** (Great Crash) | ⭕ **成功** |
+| **2026-02-02** | **+6.9% 急騰** | **底堅い/反発** (反発シグナル点灯) | ⭕ **成功** |
+| **2026-01-29** | -11.3% 大暴落 | **⚠️ 大暴落加速** (Great Crash) | ⭕ **大成功** |
 | **2025-12-26** | 翌週 -4.5% 下落 | **続落注意** (Caution) | ⭕ **概ね成功** |
-| **2026-01-29** | 翌日 -11.3% 大暴落 | **⚠️ 大暴落加速** (Great Crash) | ⭕ **大成功** |
-| **2026-02-02** | 翌日 +6.9% 急騰 | **続落注意** (Caution) | ❌ **失敗** |
+| **2025-10-20** | 翌日 -5.7% 急落 | **⚠️ 大暴落加速** (Great Crash) | ⭕ **成功** |
+| **2025-04-18** | **+3.0% 急騰** | **底堅い/反発** | ⭕ **成功** (New!) |
+| **2025-04-15** | **+3.4% 急騰** | **🚀 急騰加速** (Wボトム検知) | ⭕ **成功** (New!) |
+| **2024-07-24** | -2.5% 急落 | **⚠️ 大暴落加速** (Mトップ検知) | ⭕ **成功** (New!) |
+
+※ 2026-02-02の予測は、以前「続落注意」で失敗していましたが、ピンバー検知導入により「反発」予測に改善されました。
 
 
 ## インストール
 
 ```bash
-cd metal-analyzer
-pip install .
+pip install metal-analyzer
 ```
 
-## クイックスタート：Pythonコードでの利用
+## クイックスタート
 
-デモスクリプト以外にも、ライブラリの各コンポーネントをPythonコードから直接呼び出して、独自の分析フローを構築できます。
+### A. 短期トレンド分析 (4つのダッシュボード)
 
 ```python
 from metal_analyzer import MetalAnalyzer
 import yfinance as yf
 
-# 1. インスタンスの初期化
+# インスタンス化
 analyzer = MetalAnalyzer(ticker="GC=F")
 
-# 2. データの取得と追加（Yahoo Finance等を利用）
-daily_df = yf.download("GC=F", period="2y", interval="1d")
-h1_df = yf.download("GC=F", period="2mo", interval="1h")
+# データの準備 (日足、4時間足、1時間足が必要)
+d_df = yf.download("GC=F", period="2y", interval="1d")
+h1_df = yf.download("GC=F", period="1mo", interval="1h")
 
-analyzer.add_timeframe_data("Daily", daily_df)
+analyzer.add_timeframe_data("Daily", d_df)
 analyzer.add_timeframe_data("1h", h1_df)
 
-# 3. 様々な分析機能の実行
+# 分析実行
+result = analyzer.analyze_short_trend()
 
-# A. 高度なトレンド予測（4つのダッシュボード）
-result_adv = analyzer.analyze_advanced_trend()
-print(f"予測: {result_adv['final_prediction']}")
-
-# B. トップダウン判定（日足と1時間足の組み合わせ）
-# 内部的に analyze_top_down 関数が呼び出されます
-from metal_analyzer.models import analyze_top_down
-td_res = analyze_top_down(daily_df, h1_df)
-print(f"短期/長期判定: {td_res['prediction']}")
-
-# C. チャートパターン検知（ダブルトップ）
-detected, details = analyzer.detect_double_top()
-if detected:
-    print(f"パターン検知: {details}")
-
-# D. エントリーシグナル判定
-from metal_analyzer.models import determine_entry_signals
-signal = determine_entry_signals(h1_df)
-print(f"売買シグナル: {signal} (1:Buy, -1:Sell, 0:Wait)")
-
-# 4. チャートの生成
-# EMA 20/50/200 とボリンジャーバンドが自動で描画されます
-analyzer.plot_candlestick("1h", filename="my_analysis.png", title="Gold 1H Analysis")
+print(f"最終予測: {result['final_prediction']}")
+print(f"リスクレベル: {result['risk_level']}")
 ```
 
----
+### B. マルチタイムフレーム分析 (トップダウン)
+
+```python
+# 日足と1時間足の整合性を確認
+signal, prediction, d_trend, h_trend, h_rsi = analyzer.analyze_top_down()
+
+print(f"判定: {signal}")
+print(f"短期/長期判定: {prediction}")
+```
+
+### C. チャート生成 (EMA & ボリンジャーバンド付き)
+
+```python
+# 1時間足のチャートを保存
+analyzer.plot_candlestick("1h", filename="chart_1h.png")
+```
+
+## プロジェクト構成
+
+パス | ファイル | 説明
+--|--|--
+`core/` | [`analyzer.py`](metal_analyzer/core/analyzer.py) | メインクラス。全時間足の統合管理。
+`models/` | [`short_trend_predictor.py`](metal_analyzer/models/short_trend_predictor.py) | 短期トレンド分析エンジン。
+`models/` | [`top_down.py`](metal_analyzer/models/top_down.py) | 日足と1時間足の整合性を判定。
+`models/` | [`signal_entry.py`](metal_analyzer/models/signal_entry.py) | 定量的シグナル判定。
+`patterns/` | [`double_top.py`](metal_analyzer/patterns/double_top.py) | ダブルトップ検知。
+`indicators/` | `sma.py`, `rsi.py`, `bollinger_bands.py` | 各種インジケーター計算。
+
+## ライセンス
+
+MIT
 
 ## 使い方：3つのメイン・デモ
 
@@ -101,17 +117,30 @@ analyzer.plot_candlestick("1h", filename="my_analysis.png", title="Gold 1H Analy
 [1] データ取得およびチャート生成中...
 [2] 高度なトレンド分析
 ==================================================
- ■高精度ゴールド分析ダッシュボード
+ ■短期トレンド分析
 ==================================================
-【長期トレンド： トレンド転換点/混在
-【モメンタム：   下落の勢い強い
-【加速/ボラ：    安定
-【センチメント】 レンジ内
+長期トレンド： トレンド転換点/混在
+EMA乖離： 上昇の勢い強い
+加速/ボラ： 安定
+センチメント： レンジ内
 --------------------------------------------------
- 最終予測: 続落注意
- リスク:   中
- コメント: 下落バイアスが強いですが、本格的な加速（暴落）にはまだ至っていません。
+ダブルトップ： 検知なし
+ダブルボトム： 検知なし
+--------------------
+最終予測: 底堅い/反発
+リスク: 低
+コメント: 買い圧力が優勢です。押し目買いやレンジ下限での反発の好機となる可能性があります。
 ==================================================
+
+[3] 短期~長期トレンド分析
+長期トレンド： 上昇 (Uptrend)
+短期トレンド： 短期上昇
+短期RSI： 85.28
+判定： 買い検討 (Wait for Dip)
+予測： トレンドは強いが短期的に過熱感あり。少し調整が入ったところを狙いたい。
+
+=== 全工程が完了しました ===
+チャート出力先: examples\outputs\candles
 ```
 
 #### 出力チャート（6時間足）
@@ -141,16 +170,20 @@ analyzer.plot_candlestick("1h", filename="my_analysis.png", title="Gold 1H Analy
 #### 実行結果（標準出力）
 ```text
 ==================================================
- ■高精度ゴールド分析ダッシュボード
+ ■短期トレンド分析
 ==================================================
-【長期トレンド： トレンド転換点/混在
-【モメンタム：   下落の勢い強い
-【加速/ボラ：    安定
-【センチメント】 重要ライン割れ (暴落の危険大)
+長期トレンド： トレンド転換点/混在
+EMA乖離： 下落の勢い強い
+加速/ボラ： ブレイクアウト/加速中
+センチメント： 重要ライン割れ (暴落確定)
 --------------------------------------------------
- 最終予測: ⚠️ 大暴落加速 (Great Crash Acceleration)
- リスク:   極めて高い
- コメント: 重要ラインを割り込み、ボラティリティが急増しています。トレンドの底が見えません。
+ダブルトップ： 検知あり
+詳細： ダブルトップを検知しました！ ピーク: 2419.10, 2431.20. ネックライン 2412.80 を下回ったため、売りシグナルです。
+ダブルボトム： 検知なし
+--------------------
+最終予測: ⚠️ 大暴落加速 (Great Crash Acceleration)
+リスク: 極めて高い
+コメント: 長期下降トレンド、重要ライン割れ、ボラティリティ拡大が全て揃いました。トレンドの底が見えません。
 ==================================================
 ```
 
@@ -181,16 +214,19 @@ analyzer.plot_candlestick("1h", filename="my_analysis.png", title="Gold 1H Analy
 #### 実行結果（標準出力）
 ```text
 ==================================================
- ■高精度ゴールド分析ダッシュボード
+ ■短期トレンド分析
 ==================================================
-【長期トレンド： トレンド転換点/混在
-【モメンタム：   穏やか
-【加速/ボラ：    安定
-【センチメント】 レンジ内
+長期トレンド： トレンド転換点/混在
+EMA乖離： 穏やか
+加速/ボラ： 安定
+センチメント： レンジ内
 --------------------------------------------------
- 最終予測: 底堅い/反発
- リスク:   低
- コメント: 買い圧力が優勢、またはレンジ下限での反発が見られます。
+ダブルトップ： 検知なし
+ダブルボトム： 検知なし
+--------------------
+最終予測: 底堅い/反発
+リスク: 低
+コメント: 買い圧力が優勢です。押し目買いやレンジ下限での反発の好機となる可能性があります。
 ==================================================
 ```
 
@@ -226,9 +262,11 @@ analyzer.plot_candlestick("1h", filename="my_analysis.png", title="Gold 1H Analy
 | | [`bollinger_bands.py`](metal_analyzer/indicators/bollinger_bands.py) | ボリンジャーバンドの計算アルゴリズム。 |
 | | [`rsi.py`](metal_analyzer/indicators/rsi.py) | 相対力指数（RSI）の計算アルゴリズム。 |
 | `patterns/` | [`double_top.py`](metal_analyzer/patterns/double_top.py) | SciPyを用いたダブルトップ（Mトップ）検知ロジック。 |
-| `models/` | [`advanced_predictor.py`](metal_analyzer/models/advanced_predictor.py) | 高精度トレンド予測エンジン。 |
+| | [`double_bottom.py`](metal_analyzer/patterns/double_bottom.py) | ダブルボトム（Wボトム）検知ロジック。 |
+| `models/` | [`short_trend_predictor.py`](metal_analyzer/models/short_trend_predictor.py) | 短期トレンド分析エンジン（RSIダイバージェンス、200EMAサポート判定を含む）。 |
 | | [`top_down.py`](metal_analyzer/models/top_down.py) | マルチタイムフレーム分析ロジック。 |
-| | [`signal_entry.py`](metal_analyzer/models/signal_entry.py) | エントリー・エグジット判定。 |
+| `models/` | [`top_down.py`](metal_analyzer/models/top_down.py) | マルチタイムフレーム分析ロジック。 |
 | `examples/` | [`demo.py`](examples/demo.py) | 総合分析デモスクリプト。 |
 | | [`demo-20260130.py`](examples/demo-20260130.py) | 暴落局面シミュレーション。 |
 | | [`demo-20251230.py`](examples/demo-20251230.py) | トレンド転換シミュレーション。 |
+

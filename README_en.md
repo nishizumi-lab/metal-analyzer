@@ -1,12 +1,12 @@
 # Metal Analyzer
 
-A professional Python library for advanced analysis of precious metal prices (e.g., Gold). It provides high-precision trend prediction, market sentiment analysis, and sophisticated chart pattern detection.
+A professional Python library for advanced analysis of precious metal prices (e.g., Gold). It provides trend analysis, market sentiment analysis, and sophisticated chart pattern detection.
 
-## Key Features
+## Features
 
 Feature|Description
 --|--
-Advanced Trend Analysis|Predicts crashes and surges based on 4 key dimensions: Long-term Trend, Momentum, Volatility Acceleration, and Sentiment.
+Short-term Trend Analysis|Analyzes short-term price movements based on 4 key dimensions: Long-term Trend, Momentum, Volatility Acceleration, and Sentiment.
 Multi-Timeframe Support|Generates 6 types of timeframe charts: Monthly, Weekly, Daily, 4H, 1H, and 15M. Visualizes trends with EMA 20/50/200 and Bollinger Bands.
 
 ## Algorithm Logic Verification
@@ -37,52 +37,49 @@ The model detected signs of "Crashes" with extremely high accuracy, but challeng
 ## Installation
 
 ```bash
-cd metal-analyzer
-pip install .
+pip install metal-analyzer
 ```
 
-## Quick Start: Using in Python Code
+## Quick Start
 
-Beyond the demo scripts, you can build your own analysis flow by calling the library components directly.
+### A. Short-term Trend Analysis (4 Dashboards)
 
 ```python
 from metal_analyzer import MetalAnalyzer
 import yfinance as yf
 
-# 1. Initialize the Analyzer
+# Initialize
 analyzer = MetalAnalyzer(ticker="GC=F")
 
-# 2. Fetch and Add Data (e.g., using Yahoo Finance)
-daily_df = yf.download("GC=F", period="2y", interval="1d")
-h1_df = yf.download("GC=F", period="2mo", interval="1h")
+# Prepare data (Daily, 4H, and 1H required)
+d_df = yf.download("GC=F", period="2y", interval="1d")
+h1_df = yf.download("GC=F", period="1mo", interval="1h")
 
-analyzer.add_timeframe_data("Daily", daily_df)
+analyzer.add_timeframe_data("Daily", d_df)
 analyzer.add_timeframe_data("1h", h1_df)
 
-# 3. Run Various Analysis Functions
+# Run analysis
+result = analyzer.analyze_short_trend()
 
-# A. Advanced Trend Prediction (4 Dashboards)
-result_adv = analyzer.analyze_advanced_trend()
-print(f"Prediction: {result_adv['final_prediction']}")
+print(f"Final Prediction: {result['final_prediction']}")
+print(f"Risk Level: {result['risk_level']}")
+```
 
-# B. Top-Down Analysis (Combines Daily and 1H)
-from metal_analyzer.models import analyze_top_down
-td_res = analyze_top_down(daily_df, h1_df)
-print(f"Top-Down View: {td_res['prediction']}")
+### B. Multi-Timeframe Analysis (Top-Down)
 
-# C. Chart Pattern Detection (Double Top)
-detected, details = analyzer.detect_double_top()
-if detected:
-    print(f"Pattern Detected: {details}")
+```python
+# Check alignment between Daily and Hourly
+signal, prediction, d_trend, h_trend, h_rsi = analyzer.analyze_top_down()
 
-# D. Entry Signal Determination
-from metal_analyzer.models import determine_entry_signals
-signal = determine_entry_signals(h1_df)
-print(f"Trade Signal: {signal} (1:Buy, -1:Sell, 0:Wait)")
+print(f"Signal: {signal}")
+print(f"Trend View: {prediction}")
+```
 
-# 4. Generate Charts
-# EMA 20/50/200 and Bollinger Bands are automatically plotted
-analyzer.plot_candlestick("1h", filename="my_analysis.png", title="Gold 1H Analysis")
+### C. Chart Generation (with EMA & Bollinger Bands)
+
+```python
+# Save 1H chart
+analyzer.plot_candlestick("1h", filename="chart_1h.png")
 ```
 
 ---
@@ -92,15 +89,15 @@ analyzer.plot_candlestick("1h", filename="my_analysis.png", title="Gold 1H Analy
 Three demo scripts are provided in the `examples/` folder to showcase the library's capabilities.
 
 ### 1. Comprehensive Analysis Demo (`examples/demo.py`)
-Generates charts for all major timeframes and runs advanced trend prediction using the latest market data.
+Generates charts for all major timeframes and runs short-term trend analysis using the latest market data.
 
 #### Execution Result (Console Output)
 ```text
 === Metal Analyzer Comprehensive Analysis Demo ===
 [1] Fetching data and generating charts...
-[2] Advanced Trend Analysis
+[2] Short-term Trend Analysis
 ==================================================
- ■ High-Precision Gold Analysis Dashboard
+ ■ Short-term Trend Analysis
 ==================================================
 【Long Trend:  Neutral / Consolidation
 【Momentum:    Strong Downward Pressure
@@ -225,9 +222,10 @@ Detailed descriptions of each file's role in the project.
 | | [`bollinger_bands.py`](metal_analyzer/indicators/bollinger_bands.py) | Bollinger Bands calculation algorithm. |
 | | [`rsi.py`](metal_analyzer/indicators/rsi.py) | Relative Strength Index (RSI) calculation algorithm. |
 | `patterns/` | [`double_top.py`](metal_analyzer/patterns/double_top.py) | Double Top (M-Top) detection logic using SciPy filters. |
-| `models/` | [`advanced_predictor.py`](metal_analyzer/models/advanced_predictor.py) | High-precision trend prediction engine based on 4 dashboards. |
+| | [`double_bottom.py`](metal_analyzer/patterns/double_bottom.py) | Double Bottom (W-Bottom) detection logic. |
+| `models/` | [`short_trend_predictor.py`](metal_analyzer/models/short_trend_predictor.py) | Short-term trend analysis including RSI divergence & 200EMA support. |
 | | [`top_down.py`](metal_analyzer/models/top_down.py) | Multi-timeframe top-down analysis logic. |
-| | [`signal_entry.py`](metal_analyzer/models/signal_entry.py) | Entry and exit signal determination logic. |
+| `models/` | [`top_down.py`](metal_analyzer/models/top_down.py) | Top-down alignment logic. |
 | `examples/` | [`demo.py`](examples/demo.py) | Comprehensive analysis demo script using the latest market data. |
 | | [`demo-20260130.py`](examples/demo-20260130.py) | Simulation script for the Jan 2026 crash scenario. |
 | | [`demo-20251230.py`](examples/demo-20251230.py) | Simulation script for the Dec 2025 trend transition scenario. |

@@ -11,9 +11,9 @@ import os
 import mplfinance as mpf
 from matplotlib.lines import Line2D
 from ..indicators import calculate_sma, calculate_ema, calculate_rsi, calculate_bollinger_bands
-from ..patterns import detect_double_top
-from ..models import analyze_top_down as run_top_down, determine_entry_signals
-from ..models.advanced_predictor import analyze_advanced_trend
+from ..patterns import detect_double_top, detect_double_bottom
+from ..models import analyze_top_down as run_top_down
+from ..models.short_trend_predictor import analyze_short_trend
 
 class MetalAnalyzer:
     """貴金属価格を分析するためのメインクラス。
@@ -74,8 +74,8 @@ class MetalAnalyzer:
         elif norm_tf in ['1h', 'hourly']:
             self.hourly_data = data
 
-    def analyze_advanced_trend(self):
-        """高度なトレンド予測を実行し、結果を出力する。
+    def analyze_short_trend(self):
+        """短期トレンド分析を実行し、結果を出力する。
 
         日足、4時間足、1時間足、およびチャートパターンを使用して、
         多角的な相場分析（4つのダッシュボード）を実行します。
@@ -103,24 +103,43 @@ class MetalAnalyzer:
 
         # パターン情報の取得
         dt_detected, dt_details = self.detect_double_top()
-        patterns = {'double_top': dt_detected}
-        if dt_detected:
-            try:
-                import re
-                match = re.search(r"ネックライン ([\d.]+)", dt_details)
-                if match: patterns['neckline'] = float(match.group(1))
-            except: pass
+        db_detected, db_details = self.detect_double_bottom()
 
-        res = analyze_advanced_trend(d_df, h4_df, h1_df, patterns=patterns)
+        patterns = {
+            'double_top': dt_detected,
+            'double_bottom': db_detected
+        }
+
+        # ネックラインの抽出 (正規表現)
+        import re
+        if dt_detected:
+            match = re.search(r"ネックライン ([\d.]+)", dt_details)
+            if match: patterns['neckline_top'] = float(match.group(1))
+        
+        if db_detected:
+            match = re.search(r"ネックライン ([\d.]+)", db_details)
+            if match: patterns['neckline_bottom'] = float(match.group(1))
+
+        res = analyze_short_trend(d_df, h4_df, h1_df, patterns=patterns)
         
         print("\n" + "="*50)
-        print(" ■高精度ゴールド分析")
+        print(" ■短期トレンド分析")
         print("="*50)
         print(f"長期トレンド： {res['dashboard_1_trend']}")
         print(f"EMA乖離： {res['dashboard_2_momentum']}")
         print(f"加速/ボラ： {res['dashboard_3_volatility']}")
         print(f"センチメント： {res['dashboard_4_sentiment']}")
         print("-" * 50)
+        
+        status_dt = "検知あり" if dt_detected else "検知なし"
+        print(f"ダブルトップ： {status_dt}")
+        if dt_detected: print(f"詳細： {dt_details}")
+
+        status_db = "検知あり" if db_detected else "検知なし"
+        print(f"ダブルボトム： {status_db}")
+        if db_detected: print(f"詳細： {db_details}")
+
+        print("-" * 20)
         print(f"最終予測: {res['final_prediction']}")
         print(f"リスク: {res['risk_level']}")
         print(f"コメント: {res['comment']}")
@@ -206,6 +225,21 @@ class MetalAnalyzer:
         if df is None: df = self.hourly_data
         return detect_double_top(df, threshold, lookback)
 
+    def detect_double_bottom(self, threshold=0.03, lookback=100):
+        """ダブルボトム（Wボトム）パターンを検知する。
+
+        Args:
+            threshold (float): 谷の深さの許容誤差（割合）。
+            lookback (int): 参照する直近のデータポイント数。
+
+        Returns:
+            tuple: (bool, str) 検知の有無と詳細メッセージ。
+        """
+        from ..patterns import detect_double_bottom
+        df = self._get_df(['1h', '1H', 'hourly'])
+        if df is None: df = self.hourly_data
+        return detect_double_bottom(df, threshold, lookback)
+
     def analyze_all(self, output_dir="examples/outputs/candles", prefix=""):
         """全時間足の分析とプロットを一括実行する。
 
@@ -214,7 +248,7 @@ class MetalAnalyzer:
             prefix (str): ファイル名の接頭辞。
         """
         print(f"\n--- 総合分析およびチャート生成開始 (Prefix: {prefix}) ---")
-        self.analyze_advanced_trend()
+        self.analyze_short_trend()
         
         for tf in list(self.timeframe_data.keys()):
             fname = os.path.join(output_dir, f"{prefix}chart_{tf.lower()}.png")

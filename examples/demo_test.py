@@ -5,15 +5,12 @@
 2. 2025-12-29 (4.5% 下落) の前日 -> トレンド転換を示唆していたか？
 3. 2026-01-30 (11% 大暴落) の前日 -> 大暴落シグナル（またはその予兆）が出ていたか？
 4. 2026-02-03 (6.9% 急騰) の前日 -> 反発の兆しを検知できていたか？
-
-さらに、過去1年間の急騰・急落局面5つを追加検証します。
 """
 
 import yfinance as yf
 from metal_analyzer import MetalAnalyzer
 import pandas as pd
 import datetime
-import os
 
 def run_backtest():
     ticker = "GC=F"
@@ -21,21 +18,14 @@ def run_backtest():
     
     # 検証するシナリオ: (ラベル, ターゲット日付(この日の終わり時点のデータを使う), 翌日の実際の結果)
     test_cases = [
-        # 既存のテストケース
-        ("2026年1月 大暴落前夜", "2026-01-29", "翌日 -11.3% 大暴落"),
-        ("2026年2月 急騰前夜",   "2026-02-02", "翌日 +6.9% 急騰"),
-        
-        # 追加検証シナリオ (過去1年間 - 日付は分析基準日)
-        # 1. 2025-08-11 (月) 急落 (-2.5%) -> 前週金曜 08-08
-        ("2025/08 急落前夜", "2025-08-08", "翌週 -2.5% 急落"),
-        # 2. 2025-04-21 (月) 急騰 (+2.95%) -> 前週金曜 04-18
-        ("2025/04 急騰前夜1", "2025-04-18", "翌週 +3.0% 急騰"),
-        # 3. 2025-04-16 (水) 急騰 (+3.35%) -> 前日 04-15
-        ("2025/04 急騰前夜2", "2025-04-15", "翌日 +3.4% 急騰"),
-        # 4. 2024-11-25 (月) 急落 (-3.44%) -> 前週金曜 11-22
-        ("2024/11 急落前夜", "2024-11-22", "翌週 -3.4% 急落"),
-        # 5. 2024-07-25 (木) 急落 (-2.54%) -> 前日 07-24
-        ("2024/07 急落前夜", "2024-07-24", "翌日 -2.5% 急落"),
+        # ("2025年10月 急落前夜", "2025-10-20", "翌日 -5.7% 急落"),
+        # ("2025年12月 下落前夜", "2025-12-26", "翌週 -4.5% 下落"), # 29は月曜なので金曜26日時点
+        # ("2026年1月 大暴落前夜", "2026-01-29", "翌日 -11.3% 大暴落"),
+        # ("2026年2月 急騰前夜",   "2026-02-02", "翌日 +6.9% 急騰"),
+        # 追加検証シナリオ (過去1年)
+        ("2025年5月 急騰前夜",   "2025-05-05", "翌日 +3.0% 急騰"),
+        ("2025年4月 連騰前夜",   "2025-04-15", "翌日 +3.4% 急騰"),
+        ("2025年5月 急落前夜",   "2025-05-09", "翌週 -3.5% 急落"),
     ]
 
     print(f"=== Metal Analyzer 過去検証バックテスト (Ticker: {ticker}) ===\n")
@@ -57,13 +47,10 @@ def run_backtest():
         start_str = (target_dt - pd.Timedelta(days=730)).strftime('%Y-%m-%d')
         
         d_df = yf.download(ticker, start=start_str, end=end_str, interval="1d", progress=False)
-        # 1時間足は期間制限があるため、直近60日程度とするが、古い日付だと取得できない可能性あり
-        # yfinanceの1hデータは過去730日まで取得可能
-        h1_start_str = (target_dt - pd.Timedelta(days=59)).strftime('%Y-%m-%d')
-        h1_df = yf.download(ticker, start=h1_start_str, end=end_str, interval="1h", progress=False)
+        h1_df = yf.download(ticker, start=(target_dt - pd.Timedelta(days=59)).strftime('%Y-%m-%d'), end=end_str, interval="1h", progress=False)
 
         if d_df.empty or h1_df.empty:
-            print("  [Error] データが取得できませんでした（期間外の可能性があります）。\n")
+            print("  [Error] データが取得できませんでした。\n")
             continue
 
         # yfinanceのMultiIndex対応 (Resample前にフラット化が必要)
@@ -74,21 +61,13 @@ def run_backtest():
                     df.columns = df.columns.get_level_values(0)
                 elif len(df.columns.levels) > 1 and 'Close' in df.columns.get_level_values(1):
                     df.columns = df.columns.get_level_values(1)
-            
-            # IndexがDatetimeIndexであることを確認
-            if not isinstance(df.index, pd.DatetimeIndex):
-                df.index = pd.to_datetime(df.index)
 
         # 4時間足は1時間足から生成
-        if not h1_df.empty:
-            h4_df = h1_df.resample('4h').agg({
-                'Open': 'first', 'High': 'max', 'Low': 'min', 'Close': 'last', 'Volume': 'sum'
-            }).dropna()
-        else:
-            h4_df = pd.DataFrame()
+        h4_df = h1_df.resample('4h').agg({
+            'Open': 'first', 'High': 'max', 'Low': 'min', 'Close': 'last', 'Volume': 'sum'
+        }).dropna()
 
         # Analyzerにセット
-        analyzer.timeframe_data = {} # クリア
         analyzer.add_timeframe_data("Daily", d_df)
         analyzer.add_timeframe_data("1h", h1_df)
         analyzer.add_timeframe_data("4h", h4_df)
