@@ -36,7 +36,35 @@ def run_multi_timeframe_demo():
     print(f"\n[2] 高度なトレンド分析")
     analyzer.analyze_advanced_trend()
 
-    print(f"\n=== 全工程が完了しました ===")
+    # 追加の分析セクション
+    d_df = analyzer.daily_data
+    h1_df = analyzer.hourly_data
+
+    if d_df is not None and h1_df is not None:
+        print(f"[3] マルチタイムフレーム分析")
+        from metal_analyzer.models import analyze_top_down
+        signal, prediction, d_trend, h_trend, h_rsi = analyze_top_down(d_df, h1_df)
+        print(f"長期トレンド： {d_trend}")
+        print(f"短期トレンド： {h_trend}")
+        print(f"短期RSI： {h_rsi:.2f}")
+        print(f"判定： {signal}")
+        print(f"予測： {prediction}\n")
+
+        print(f"[4] エントリーシグナル判定")
+        from metal_analyzer.models import determine_entry_signals
+        # 1時間足で判定
+        signals = determine_entry_signals(h1_df)
+        last_sig = signals.iloc[-1]
+        sig_desc = "買い (Buy)" if last_sig == 1 else "売り (Sell)" if last_sig == -1 else "様子見 (Wait)"
+        print(f"1時間足シグナル： {sig_desc}\n")
+
+        print(f"[5] チャートパターン検知")
+        detected, details = analyzer.detect_double_top()
+        status = "検知あり" if detected else "検知なし"
+        print(f"ダブルトップ： {status}")
+        print(f"詳細： {details}\n")
+
+    print(f"=== 全工程が完了しました ===")
     print(f"チャート出力先: {output_dir}")
 
 if __name__ == "__main__":
