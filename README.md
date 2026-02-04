@@ -8,6 +8,8 @@
 --|--
 独自の短期トレンド分析|4つの主要指標（長期トレンド、モメンタム、ボラティリティ加速、センチメント）を元に、短期的な価格変動を分析。
 マルチタイムフレーム対応|月・週・日・4時・1時・15分足の計6種類の時間足を作成。EMA 20/50/200とボリンジャーバンドを描画し、トレンドをわかりやすく可視化。
+中期トレンド分析|YouTube動画の分析手法（「根雪」「表層雪崩」「Warsh Mode」）をモデル化。高ボラティリティ環境での押し目買いや警戒シグナルを提示。
+長期トレンド・ポートフォリオ|マクロ経済指標（実質金利、通貨価値）と相対価値（金銀レシオ等）に基づき、長期的なトレンドと推奨ポートフォリオ配分比率を算出。
 
 ## アルゴリズム実装の対比検証
 
@@ -150,7 +152,48 @@ print(f"判定: {signal}")
 print(f"短期/長期判定: {prediction}")
 ```
 
-### C. チャート生成 (EMA & ボリンジャーバンド付き)
+
+### C. 中期トレンド分析 (根雪・表層雪崩理論)
+
+週足と日足を用いて、高ボラティリティ市場における「戦略的買い場」を探ります。
+
+```python
+from metal_analyzer.models.middle_trend_predictor import analyze_middle_trend
+
+# 週足と日足データを準備
+weekly_df = yf.download("GC=F", period="2y", interval="1wk")
+daily_df = yf.download("GC=F", period="1y", interval="1d")
+
+# 分析実行
+mid_res = analyze_middle_trend(weekly_df, daily_df)
+
+print(f"週足構造: {mid_res['dashboard_1_weekly']}") # 根雪判定
+print(f"ボラティリティ: {mid_res['dashboard_3_volatility']}") # Warsh Mode判定
+print(f"戦略: {mid_res['dashboard_4_strategy']}") # Deep Dip判定
+```
+
+### D. 長期トレンド・ポートフォリオ分析
+
+マクロ経済指標やレシオ分析を用いて、長期的な資産保全とポートフォリオ配分を提案します。
+
+```python
+from metal_analyzer.models.long_trend_predictor import analyze_long_trend
+
+# 各種アセットの月足データを取得
+gold = yf.download("GC=F", period="10y", interval="1mo")
+silver = yf.download("SI=F", period="10y", interval="1mo")
+platinum = yf.download("PL=F", period="10y", interval="1mo")
+dxy = yf.download("DX-Y.NYB", period="10y", interval="1mo") # ドルインデックス
+tips = yf.download("TIP", period="10y", interval="1mo") # 実質金利近似
+
+long_res = analyze_long_trend(gold, silver, platinum, dxy, tips)
+
+print(f"マクロ環境: {long_res['dashboard_3_macro']}")
+print(f"推奨ポートフォリオ: {long_res['dashboard_4_portfolio']}")
+```
+
+### E. チャート生成 (EMA & ボリンジャーバンド付き)
+
 
 ```python
 # 1時間足のチャートを保存
@@ -163,6 +206,8 @@ analyzer.plot_candlestick("1h", filename="chart_1h.png")
 --|--|--
 `core/` | [`analyzer.py`](metal_analyzer/core/analyzer.py) | メインクラス。全時間足の統合管理。
 `models/` | [`short_trend_predictor.py`](metal_analyzer/models/short_trend_predictor.py) | 短期トレンド分析エンジン。
+`models/` | [`middle_trend_predictor.py`](metal_analyzer/models/middle_trend_predictor.py) | 中期トレンド分析（根雪/表層雪崩/ボラティリティ）。
+`models/` | [`long_trend_predictor.py`](metal_analyzer/models/long_trend_predictor.py) | 長期トレンド・マクロ分析・ポートフォリオ推奨。
 `models/` | [`top_down.py`](metal_analyzer/models/top_down.py) | 日足と1時間足の整合性を判定。
 `models/` | [`signal_entry.py`](metal_analyzer/models/signal_entry.py) | 定量的シグナル判定。
 `patterns/` | [`double_top.py`](metal_analyzer/patterns/double_top.py) | ダブルトップ検知。
