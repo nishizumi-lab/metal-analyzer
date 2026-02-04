@@ -4,6 +4,8 @@
 特定のチャートパターンを検知するための機能を提供します。
 """
 
+__version__ = '0.0.2'
+
 from .core.analyzer import MetalAnalyzer
 from . import indicators
 from . import patterns

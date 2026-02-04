@@ -8,6 +8,7 @@ import pandas as pd
 import numpy as np
 from ..indicators.sma import calculate_ema, calculate_sma
 from ..indicators.rsi import calculate_rsi
+from ..patterns import detect_double_top, detect_double_bottom
 
 def analyze_short_trend(daily_df, h4_df, h1_df, patterns=None):
     """短期的な4つのダッシュボード指標に基づいたトレンド分析を実行する。
@@ -214,3 +215,62 @@ def analyze_short_trend(daily_df, h4_df, h1_df, patterns=None):
         results['comment'] = "買い圧力が優勢です。押し目買いやレンジ下限での反発の好機となる可能性があります。"
 
     return results
+
+def analyze_timeframe_details(timeframes):
+    """各時間足の詳細分析レポートを生成する。
+
+    Args:
+        timeframes (dict): 時間足名をキー、DataFrameを値とする辞書。
+                           例: {'Monthly': df, 'Weekly': df ...}
+
+    Returns:
+        str: 整形された分析レポート文字列。
+    """
+    details = []
+    # 表示順序を固定
+    order = ['Monthly', 'Weekly', 'Daily', '4H', '1H', '15M']
+    
+    for tf_name in order:
+        if tf_name not in timeframes:
+            continue
+            
+        df = timeframes[tf_name]
+        if df is None or df.empty:
+            continue
+            
+        # --- トレンド判定 (EMA) ---
+        # 必要な期間の長さがあるか確認
+        if len(df) < 50:
+            trend = "データ不足"
+        else:
+            ema20 = calculate_ema(df, 20).iloc[-1]
+            ema50 = calculate_ema(df, 50).iloc[-1]
+            ema200 = calculate_ema(df, 200).iloc[-1]
+            close = df['Close'].iloc[-1]
+            
+            if close > ema20 > ema50 > ema200:
+                trend = "🔼 上昇 (価格 > EMA20 > 50 > 200)"
+            elif close < ema20 < ema50 < ema200:
+                trend = "🔽 下落 (価格 < EMA20 < 50 < 200)"
+            elif close > ema200:
+                trend = "↗️ 上昇 (EMA200上)"
+            elif close < ema200:
+                trend = "↘️ 下落 (EMA200下)"
+            else:
+                trend = "→ 混在"
+
+        # --- パターン検知 ---
+        pattern_str = ""
+        # 1h足以外でも検知できるように、モデルの関数を直接呼ぶ
+        if len(df) > 50:
+            is_dt, _ = detect_double_top(df)
+            is_db, _ = detect_double_bottom(df)
+            
+            if is_dt: pattern_str += "**⚠️ Wトップ** "
+            if is_db: pattern_str += "**💎 Wボトム** "
+
+        # 行の作成
+        row = f"**{tf_name}**: `{trend}` {pattern_str}"
+        details.append(row)
+        
+    return "\n".join(details)
